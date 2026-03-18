@@ -1,0 +1,43 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #181818;
+  color: #ffffff;
+}
+
+a {
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+svg,
+svg use {
+  width: inherit;
+  height: inherit;
+}
+
+.sidebar__icon svg,
+.sidebar__icon svg use {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.track__timeSvg,
+.track__timeSvg use {
+  width: 14px !important;
+  height: 12px !important;
+}
+
+.track__titleSvg,
+.track__titleSvg use {
+  width: 18px !important;
+  height: 17px !important;
+}
