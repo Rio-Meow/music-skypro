@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import cn from 'classnames';
 import styles from './Bar.module.css';
 
@@ -49,14 +50,14 @@ export function Bar() {
                   </svg>
                 </div>
                 <div className={styles.trackPlay__author}>
-                  <a className={styles.trackPlay__authorLink} href="#">
+                  <Link className={styles.trackPlay__authorLink} href="#">
                     Ты та...
-                  </a>
+                  </Link>
                 </div>
                 <div className={styles.trackPlay__album}>
-                  <a className={styles.trackPlay__albumLink} href="#">
+                  <Link className={styles.trackPlay__albumLink} href="#">
                     Баста
-                  </a>
+                  </Link>
                 </div>
               </div>
 

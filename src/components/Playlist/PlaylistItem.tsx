@@ -1,4 +1,5 @@
 import cn from 'classnames';
+import Link from 'next/link'; 
 import styles from './PlaylistItem.module.css';
 
 interface PlaylistItemProps {
@@ -6,13 +7,19 @@ interface PlaylistItemProps {
   artist?: string;
   album?: string;
   duration?: string;
+  trackId?: number;
+  artistId?: string;
+  albumId?: string;
 }
 
 export function PlaylistItem({ 
   trackName = "Guilt", 
   artist = "Nero", 
   album = "Welcome Reality", 
-  duration = "4:44" 
+  duration = "4:44",
+  trackId = 1,
+  artistId = "nero",
+  albumId = "welcome-reality"
 }: PlaylistItemProps) {
 
   const formatTrackName = (name: string) => {
@@ -42,20 +49,20 @@ export function PlaylistItem({
             </svg>
           </div>
           <div className={styles.track__titleText}>
-            <a className={styles.track__titleLink} href="#">
+            <Link href={`/track/${trackId}`} className={styles.track__titleLink}>
               {formatTrackName(trackName)}
-            </a>
+            </Link>
           </div>
         </div>
         <div className={styles.track__author}>
-          <a className={styles.track__authorLink} href="#">
+          <Link href={`/artist/${artistId}`} className={styles.track__authorLink}>
             {artist}
-          </a>
+          </Link>
         </div>
         <div className={styles.track__album}>
-          <a className={styles.track__albumLink} href="#">
+          <Link href={`/album/${albumId}`} className={styles.track__albumLink}>
             {album}
-          </a>
+          </Link>
         </div>
         <div className={styles.track__time}>
           <svg className={styles.track__timeSvg}>
