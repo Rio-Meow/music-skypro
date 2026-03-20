@@ -1,15 +1,20 @@
+'use client';
+
 import cn from 'classnames';
+import { useEffect } from 'react';
 import { PlaylistItem } from './PlaylistItem';
+import { useAudioPlayerContext } from '@/context/AudioPlayerContext';
+import { data } from '@/data';
 import styles from './Playlist.module.css';
 
 export function Playlist() {
-  const tracks = [
-    { id: 1, name: "Guilt", artist: "Nero", album: "Welcome Reality", duration: "4:44" },
-    { id: 2, name: "Elektro", artist: "Dynoro, Outwork, Mr. Gee", album: "Elektro", duration: "2:22" },
-    { id: 3, name: "I'm Fire", artist: "Ali Bakgor", album: "I'm Fire", duration: "2:22" },
-    { id: 4, name: "Non Stop (Remix)", artist: "Стоункат, Psychopath", album: "Non Stop", duration: "4:12" },
-    { id: 5, name: "Run Run (feat. AR/CO)", artist: "Jaded, Will Clarke, AR/CO", album: "Run Run", duration: "2:54" },
-  ];
+  const { playlist, setPlaylist, currentTrack, isPlaying } = useAudioPlayerContext();
+
+  useEffect(() => {
+    if (playlist.length === 0) {
+      setPlaylist(data);
+    }
+  }, [playlist, setPlaylist]);
 
   return (
     <div className={styles.content}>
@@ -24,13 +29,12 @@ export function Playlist() {
         </div>
       </div>
       <div className={styles.content__playlist}>
-        {tracks.map(track => (
+        {playlist.map(track => (
           <PlaylistItem 
-            key={track.id}
-            trackName={track.name}
-            artist={track.artist}
-            album={track.album}
-            duration={track.duration}
+            key={track._id}
+            track={track}
+            isCurrentTrack={currentTrack?._id === track._id}
+            isPlaying={isPlaying}
           />
         ))}
       </div>
