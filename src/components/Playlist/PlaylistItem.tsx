@@ -1,26 +1,34 @@
+'use client';
+
 import cn from 'classnames';
-import Link from 'next/link'; 
+import Link from 'next/link';
+import { useAudioPlayerContext } from '@/context/AudioPlayerContext';
 import styles from './PlaylistItem.module.css';
 
-interface PlaylistItemProps {
-  trackName?: string;
-  artist?: string;
-  album?: string;
-  duration?: string;
-  trackId?: number;
-  artistId?: string;
-  albumId?: string;
+interface Track {
+  _id: number;
+  name: string;
+  author: string;
+  album: string;
+  duration_in_seconds: number;
+  track_file: string;
+  logo: string | null;
 }
 
-export function PlaylistItem({ 
-  trackName = "Guilt", 
-  artist = "Nero", 
-  album = "Welcome Reality", 
-  duration = "4:44",
-  trackId = 1,
-  artistId = "nero",
-  albumId = "welcome-reality"
-}: PlaylistItemProps) {
+interface PlaylistItemProps {
+  track: Track;
+  isCurrentTrack?: boolean;
+  isPlaying?: boolean;
+}
+
+export function PlaylistItem({ track, isCurrentTrack = false, isPlaying = false }: PlaylistItemProps) {
+  const { setCurrentTrack, setIsPlaying } = useAudioPlayerContext();
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const formatTrackName = (name: string) => {
     const bracketRegex = /\([^)]*\)/g;
@@ -39,36 +47,51 @@ export function PlaylistItem({
     return name;
   };
 
+  const handlePlayClick = () => {
+    setCurrentTrack(track);
+    setIsPlaying(true);
+  };
+
   return (
-    <div className={styles.item}>
+    <div className={cn(styles.item, { [styles.playing]: isCurrentTrack && isPlaying })}>
       <div className={styles.track}>
         <div className={styles.track__title}>
-          <div className={styles.track__titleImage}>
-            <svg className={styles.track__titleSvg}>
-              <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
-            </svg>
+          <div 
+            className={styles.track__titleImage} 
+            onClick={handlePlayClick}
+            style={{ cursor: 'pointer' }}
+          >
+            {isCurrentTrack ? (
+              <div className={cn(styles.playingAnimation, { [styles.animate]: isPlaying })}>
+                <div className={styles.dot}></div>
+              </div>
+            ) : (
+              <svg className={styles.track__titleSvg}>
+                <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
+              </svg>
+            )}
           </div>
           <div className={styles.track__titleText}>
-            <Link href={`/track/${trackId}`} className={styles.track__titleLink}>
-              {formatTrackName(trackName)}
+            <Link href={`/track/${track._id}`} className={styles.track__titleLink}>
+              {formatTrackName(track.name)}
             </Link>
           </div>
         </div>
         <div className={styles.track__author}>
-          <Link href={`/artist/${artistId}`} className={styles.track__authorLink}>
-            {artist}
+          <Link href={`/artist/${track.author}`} className={styles.track__authorLink}>
+            {track.author}
           </Link>
         </div>
         <div className={styles.track__album}>
-          <Link href={`/album/${albumId}`} className={styles.track__albumLink}>
-            {album}
+          <Link href={`/album/${track.album}`} className={styles.track__albumLink}>
+            {track.album}
           </Link>
         </div>
         <div className={styles.track__time}>
           <svg className={styles.track__timeSvg}>
             <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
           </svg>
-          <span className={styles.track__timeText}>{duration}</span>
+          <span className={styles.track__timeText}>{formatDuration(track.duration_in_seconds)}</span>
         </div>
       </div>
     </div>
