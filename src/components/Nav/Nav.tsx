@@ -19,25 +19,6 @@ export function Nav() {
         />
       </div>
       <Burger />
-      <div className={styles.nav__menu}>
-        <ul className={styles.menu__list}>
-          <li className={styles.menu__item}>
-            <Link href="/music/main" className={styles.menu__link}>
-              Главное
-            </Link>
-          </li>
-          <li className={styles.menu__item}>
-            <Link href="/playlist" className={styles.menu__link}>
-              Мой плейлист
-            </Link>
-          </li>
-          <li className={styles.menu__item}>
-            <Link href="/signin" className={styles.menu__link}>
-              Войти
-            </Link>
-          </li>
-        </ul>
-      </div>
     </nav>
   );
 }

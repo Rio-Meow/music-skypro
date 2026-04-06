@@ -1,34 +1,32 @@
 .filter {
   display: flex;
-  flex-direction: row;
   align-items: center;
   margin-bottom: 51px;
+  gap: 10px;
+  position: relative;
 }
 
 .filter__title {
-  font-style: normal;
-  font-weight: 400;
   font-size: 16px;
   line-height: 24px;
   margin-right: 15px;
   color: #ffffff;
 }
 
+.filter__wrapper {
+  position: relative;
+}
+
 .filter__button {
-  font-style: normal;
-  font-weight: 400;
   font-size: 16px;
   line-height: 24px;
   border: 1px solid #ffffff;
   border-radius: 60px;
   padding: 6px 20px;
   color: #ffffff;
-  cursor: pointer;
   background: transparent;
-}
-
-.filter__button:not(:last-child) {
-  margin-right: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .filter__button:hover {
@@ -36,7 +34,60 @@
   color: #d9b6ff;
 }
 
-.filter__button:active {
+.filter__button.active {
   border-color: #ad61ff;
+  color: #ad61ff;
+  background: rgba(173, 97, 255, 0.1);
+}
+
+.filter__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 100;
+  min-width: 200px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.filter__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 237px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.filter__list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.filter__list::-webkit-scrollbar-track {
+  background-color: rgba(75, 73, 73, 1);
+  border-radius: 2px;
+}
+
+.filter__list::-webkit-scrollbar-thumb {
+  background-color: white;
+  border-radius: 2px;
+}
+
+.filter__item {
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+
+.filter__item:hover {
+  color: #d9b6ff;
+}
+
+.filter__item.activeSort {
   color: #ad61ff;
 }
