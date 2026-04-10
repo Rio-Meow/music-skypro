@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { data } from '@/data';
 
 interface Track {
   _id: number;
@@ -15,12 +16,16 @@ interface Track {
 interface AudioPlayerContextType {
   currentTrack: Track | null;
   isPlaying: boolean;
+  isRepeat: boolean;
+  isShuffle: boolean;
   playlist: Track[];
   setCurrentTrack: (track: Track | null) => void;
   setIsPlaying: (playing: boolean) => void;
   togglePlay: () => void;
   nextTrack: () => void;
   prevTrack: () => void;
+  setIsRepeat: (repeat: boolean) => void;
+  setIsShuffle: (shuffle: boolean) => void;
   setPlaylist: (playlist: Track[]) => void;
 }
 
@@ -37,38 +42,83 @@ export const useAudioPlayerContext = () => {
 export const AudioPlayerProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
   const [playlist, setPlaylist] = useState<Track[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  const playlistRef = useRef<Track[]>([]);
+  const currentTrackRef = useRef<Track | null>(null);
+
+  useEffect(() => {
+    playlistRef.current = data;
+    setPlaylist(data);
+    if (data.length > 0) {
+      currentTrackRef.current = data[0];
+      setCurrentTrack(data[0]);
+    }
+  }, []);
+
+  useEffect(() => {
+    currentTrackRef.current = currentTrack;
+  }, [currentTrack]);
+
+  useEffect(() => {
+    playlistRef.current = playlist;
+  }, [playlist]);
+
+  const nextTrack = useCallback(() => {
+    const currentPlaylist = playlistRef.current;
+    const current = currentTrackRef.current;
+    
+    if (currentPlaylist.length === 0 || !current) return;
+    
+    const currentIndex = currentPlaylist.findIndex(t => t._id === current._id);
+    let nextIndex;
+    
+    if (isShuffle) {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * currentPlaylist.length);
+      } while (newIndex === currentIndex && currentPlaylist.length > 1);
+      nextIndex = newIndex;
+    } else {
+      nextIndex = (currentIndex + 1) % currentPlaylist.length;
+    }
+    
+    setCurrentTrack(currentPlaylist[nextIndex]);
+    setIsPlaying(true);
+  }, [isShuffle]);
+
+  const prevTrack = useCallback(() => {
+    const currentPlaylist = playlistRef.current;
+    const current = currentTrackRef.current;
+    
+    if (currentPlaylist.length === 0 || !current) return;
+    
+    const currentIndex = currentPlaylist.findIndex(t => t._id === current._id);
+    const prevIndex = (currentIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+    
+    setCurrentTrack(currentPlaylist[prevIndex]);
+    setIsPlaying(true);
+  }, []);
 
   const togglePlay = useCallback(() => {
     setIsPlaying(prev => !prev);
   }, []);
 
-  const nextTrack = useCallback(() => {
-    if (playlist.length === 0 || !currentTrack) return;
-    const currentIdx = playlist.findIndex(t => t._id === currentTrack._id);
-    const nextIdx = (currentIdx + 1) % playlist.length;
-    setCurrentTrack(playlist[nextIdx]);
-    setIsPlaying(true);
-  }, [playlist, currentTrack]);
-
-  const prevTrack = useCallback(() => {
-    if (playlist.length === 0 || !currentTrack) return;
-    const currentIdx = playlist.findIndex(t => t._id === currentTrack._id);
-    const prevIdx = (currentIdx - 1 + playlist.length) % playlist.length;
-    setCurrentTrack(playlist[prevIdx]);
-    setIsPlaying(true);
-  }, [playlist, currentTrack]);
-
   const value = {
     currentTrack,
     isPlaying,
+    isRepeat,
+    isShuffle,
     playlist,
     setCurrentTrack,
     setIsPlaying,
     togglePlay,
     nextTrack,
     prevTrack,
+    setIsRepeat,
+    setIsShuffle,
     setPlaylist,
   };
 

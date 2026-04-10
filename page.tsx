@@ -1,221 +1,181 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import './page.css';
+'use client';
 
-export default function Home() {
+import { useEffect } from 'react';
+import { useAudioPlayer } from '@/hooks/useAudioPlayer';
+import { useAudioPlayerContext } from '@/context/AudioPlayerContext';
+import Link from 'next/link';
+import cn from 'classnames';
+import styles from './Bar.module.css';
+
+export function Bar() {
+  const { 
+    currentTrack, 
+    isPlaying, 
+    togglePlay, 
+    nextTrack, 
+    prevTrack, 
+    isRepeat, 
+    setIsRepeat, 
+    isShuffle, 
+    setIsShuffle 
+  } = useAudioPlayerContext();
+  
+  const {
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    seek,
+    changeVolume,
+    toggleMute,
+    formatTime,
+    play,
+    pause,
+  } = useAudioPlayer({
+    src: currentTrack?.track_file || null,
+    onEnded: () => {
+      console.log('Track ended');
+      if (isRepeat) {
+        seek(0);
+        play();
+      } else {
+        nextTrack();
+      }
+    },
+  });
+
+  // Синхронизация isPlaying из контекста с аудио
+  useEffect(() => {
+    if (currentTrack) {
+      if (isPlaying) {
+        play();
+      } else {
+        pause();
+      }
+    }
+  }, [isPlaying, currentTrack, play, pause]);
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    changeVolume(Number(e.target.value));
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    seek(Number(e.target.value));
+  };
+
+  const handleRepeatClick = () => {
+    setIsRepeat(!isRepeat);
+  };
+
+  const handleShuffleClick = () => {
+    setIsShuffle(!isShuffle);
+  };
+
+  const handlePlayClick = () => {
+    togglePlay();
+  };
+
+  if (!currentTrack) {
+    return null;
+  }
+
+  const progressPercentage = duration ? (currentTime / duration) * 100 : 0;
+
   return (
-    <div className="wrapper">
-      <div className="container">
-        <main className="main">
-          <nav className="main__nav">
-            <div className="nav__logo">
-              <Image
-                width={113}
-                height={17}
-                className="logo__image"
-                src="/img/logo.png"
-                alt="logo"
-                priority
-              />
-            </div>
-            <div className="nav__burger">
-              <span className="burger__line"></span>
-              <span className="burger__line"></span>
-              <span className="burger__line"></span>
-            </div>
-            <div className="nav__menu">
-              <ul className="menu__list">
-                <li className="menu__item">
-                  <Link href="/" className="menu__link">
-                    Главное
-                  </Link>
-                </li>
-                <li className="menu__item">
-                  <Link href="/playlist" className="menu__link">
-                    Мой плейлист
-                  </Link>
-                </li>
-                <li className="menu__item">
-                  <Link href="/signin" className="menu__link">
-                    Войти
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </nav>
-          
-          <div className="centerblock">
-            <div className="centerblock__search">
-              <svg className="search__svg">
-                <use xlinkHref="/img/icon/sprite.svg#icon-search"></use>
-              </svg>
-              <input
-                className="search__text"
-                type="search"
-                placeholder="Поиск"
-                name="search"
-              />
-            </div>
-            <h2 className="centerblock__h2">Треки</h2>
-            <div className="centerblock__filter">
-              <div className="filter__title">Искать по:</div>
-              <div className="filter__button">исполнителю</div>
-              <div className="filter__button">году выпуска</div>
-              <div className="filter__button">жанру</div>
-            </div>
-            <div className="centerblock__content">
-              <div className="content__title">
-                <div className="playlistTitle__col col01">Трек</div>
-                <div className="playlistTitle__col col02">Исполнитель</div>
-                <div className="playlistTitle__col col03">Альбом</div>
-                <div className="playlistTitle__col col04">
-                  <svg className="playlistTitle__svg">
-                    <use xlinkHref="/img/icon/sprite.svg#icon-watch"></use>
-                  </svg>
-                </div>
+    <div className={styles.bar}>
+      <div className={styles.bar__content}>
+        <div className={styles.bar__playerBlock}>
+          <div className={styles.bar__player}>
+            <div className={styles.player__controls}>
+              <div className={styles.player__btnPrev} onClick={prevTrack}>
+                <svg className={styles.player__btnPrevSvg}>
+                  <use xlinkHref="/img/icon/sprite.svg#icon-prev"></use>
+                </svg>
               </div>
-              <div className="content__playlist">
-                {/* Здесь будут твои треки из Playlist компонента */}
+              <div className={cn(styles.player__btnPlay, styles.btn)} onClick={handlePlayClick}>
+                <svg className={styles.player__btnPlaySvg}>
+                  <use xlinkHref={`/img/icon/sprite.svg#icon-${isPlaying ? 'pause' : 'play'}`}></use>
+                </svg>
               </div>
-            </div>
-          </div>
-          
-          <div className="main__sidebar">
-            <div className="sidebar__personal">
-              <p className="sidebar__personalName">Sergey.Ivanov</p>
-              <div className="sidebar__icon">
-                <svg>
-                  <use xlinkHref="/img/icon/sprite.svg#logout"></use>
+              <div className={styles.player__btnNext} onClick={nextTrack}>
+                <svg className={styles.player__btnNextSvg}>
+                  <use xlinkHref="/img/icon/sprite.svg#icon-next"></use>
+                </svg>
+              </div>
+              <div className={cn(styles.player__btnRepeat, styles.btnIcon)} onClick={handleRepeatClick}>
+                <svg className={cn(styles.player__btnRepeatSvg, { [styles.active]: isRepeat })}>
+                  <use xlinkHref="/img/icon/sprite.svg#icon-repeat"></use>
+                </svg>
+              </div>
+              <div className={cn(styles.player__btnShuffle, styles.btnIcon)} onClick={handleShuffleClick}>
+                <svg className={cn(styles.player__btnShuffleSvg, { [styles.active]: isShuffle })}>
+                  <use xlinkHref="/img/icon/sprite.svg#icon-shuffle"></use>
                 </svg>
               </div>
             </div>
-            <div className="sidebar__block">
-              <div className="sidebar__list">
-                <div className="sidebar__item">
-                  <Link href="/playlist/1" className="sidebar__link">
-                    <Image
-                      className="sidebar__img"
-                      src="/img/playlist01.png"
-                      alt="day's playlist"
-                      width={250}
-                      height={150}
-                    />
-                  </Link>
+
+            <div className={styles.player__trackPlay}>
+              <div className={styles.trackPlay__contain}>
+                <div className={styles.trackPlay__image}>
+                  <svg className={styles.trackPlay__svg}>
+                    <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
+                  </svg>
                 </div>
-                <div className="sidebar__item">
-                  <Link href="/playlist/2" className="sidebar__link">
-                    <Image
-                      className="sidebar__img"
-                      src="/img/playlist02.png"
-                      alt="day's playlist"
-                      width={250}
-                      height={150}
-                    />
-                  </Link>
-                </div>
-                <div className="sidebar__item">
-                  <Link href="/playlist/3" className="sidebar__link">
-                    <Image
-                      className="sidebar__img"
-                      src="/img/playlist03.png"
-                      alt="day's playlist"
-                      width={250}
-                      height={150}
-                    />
-                  </Link>
+                <div className={styles.trackPlay__info}>
+                  <div className={styles.trackPlay__name}>
+                    <Link href={`/track/${currentTrack._id}`} className={styles.trackPlay__nameLink}>
+                      {currentTrack.name}
+                    </Link>
+                  </div>
+                  <div className={styles.trackPlay__author}>
+                    <Link href={`/artist/${currentTrack.author}`} className={styles.trackPlay__authorLink}>
+                      {currentTrack.author}
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
+            
+            <div className={styles.player__time}>
+              <span>{formatTime(currentTime)}</span>
+              <span>/</span>
+              <span>{formatTime(duration)}</span>
+            </div>
           </div>
-        </main>
-        
-        <div className="bar">
-          <div className="bar__content">
-            <div className="bar__playerProgress"></div>
-            <div className="bar__playerBlock">
-              <div className="bar__player">
-                <div className="player__controls">
-                  <div className="player__btnPrev">
-                    <svg className="player__btnPrevSvg">
-                      <use xlinkHref="/img/icon/sprite.svg#icon-prev"></use>
-                    </svg>
-                  </div>
-                  <div className="player__btnPlay btn">
-                    <svg className="player__btnPlaySvg">
-                      <use xlinkHref="/img/icon/sprite.svg#icon-play"></use>
-                    </svg>
-                  </div>
-                  <div className="player__btnNext">
-                    <svg className="player__btnNextSvg">
-                      <use xlinkHref="/img/icon/sprite.svg#icon-next"></use>
-                    </svg>
-                  </div>
-                  <div className="player__btnRepeat btnIcon">
-                    <svg className="player__btnRepeatSvg">
-                      <use xlinkHref="/img/icon/sprite.svg#icon-repeat"></use>
-                    </svg>
-                  </div>
-                  <div className="player__btnShuffle btnIcon">
-                    <svg className="player__btnShuffleSvg">
-                      <use xlinkHref="/img/icon/sprite.svg#icon-shuffle"></use>
-                    </svg>
-                  </div>
-                </div>
-
-                <div className="player__trackPlay">
-                  <div className="trackPlay__contain">
-                    <div className="trackPlay__image">
-                      <svg className="trackPlay__svg">
-                        <use xlinkHref="/img/icon/sprite.svg#icon-note"></use>
-                      </svg>
-                    </div>
-                    <div className="trackPlay__author">
-                      <Link href="/artist/basta" className="trackPlay__authorLink">
-                        Ты та...
-                      </Link>
-                    </div>
-                    <div className="trackPlay__album">
-                      <Link href="/album/basta" className="trackPlay__albumLink">
-                        Баста
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="trackPlay__likeDis">
-                    <div className="trackPlay__like btnIcon">
-                      <svg className="trackPlay__likeSvg">
-                        <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
-                      </svg>
-                    </div>
-                    <div className="trackPlay__dislike btnIcon">
-                      <svg className="trackPlay__dislikeSvg">
-                        <use xlinkHref="/img/icon/sprite.svg#icon-dislike"></use>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+          
+          <div className={styles.bar__volumeBlock}>
+            <div className={styles.volume__content}>
+              <div className={styles.volume__image} onClick={toggleMute}>
+                <svg className={styles.volume__svg}>
+                  <use xlinkHref={`/img/icon/sprite.svg#icon-volume-${isMuted ? 'off' : 'on'}`}></use>
+                </svg>
               </div>
-              
-              <div className="bar__volumeBlock">
-                <div className="volume__content">
-                  <div className="volume__image">
-                    <svg className="volume__svg">
-                      <use xlinkHref="/img/icon/sprite.svg#icon-volume"></use>
-                    </svg>
-                  </div>
-                  <div className="volume__progress btn">
-                    <input
-                      className="volume__progressLine btn"
-                      type="range"
-                      name="range"
-                    />
-                  </div>
-                </div>
+              <div className={cn(styles.volume__progress, styles.btn)}>
+                <input
+                  className={styles.volume__progressLine}
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume * 100}
+                  onChange={handleVolumeChange}
+                />
               </div>
             </div>
           </div>
         </div>
-        <footer className="footer"></footer>
+      </div>
+      <div className={styles.bar__playerProgress}>
+        <input
+          type="range"
+          min="0"
+          max={duration || 100}
+          value={currentTime}
+          onChange={handleSeek}
+          className={styles.playerProgressLine}
+          style={{
+            background: `linear-gradient(to right, #580ea2 0%, #580ea2 ${progressPercentage}%, #2e2e2e ${progressPercentage}%, #2e2e2e 100%)`
+          }}
+        />
       </div>
     </div>
   );
