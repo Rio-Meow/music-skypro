@@ -1,5 +1,5 @@
 import { Montserrat } from 'next/font/google';
-import { AudioPlayerProvider } from '@/context/AudioPlayerContext';
+import { Providers } from './Providers';
 import './globals.css';
 
 const montserrat = Montserrat({ 
@@ -16,9 +16,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={montserrat.className}>
-        <AudioPlayerProvider>
+        <Providers>
           {children}
-        </AudioPlayerProvider>
+        </Providers>
       </body>
     </html>
   );

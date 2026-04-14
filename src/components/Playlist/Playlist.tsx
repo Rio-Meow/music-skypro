@@ -3,18 +3,37 @@
 import cn from 'classnames';
 import { useEffect } from 'react';
 import { PlaylistItem } from './PlaylistItem';
-import { useAudioPlayerContext } from '@/context/AudioPlayerContext';
-import { data } from '@/data';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchTracks } from '@/store/slices/tracksSlice';
+import { setPlaylist } from '@/store/slices/playerSlice';
 import styles from './Playlist.module.css';
 
 export function Playlist() {
-  const { playlist, setPlaylist, currentTrack, isPlaying } = useAudioPlayerContext();
+  const dispatch = useAppDispatch();
+  const { items, status } = useAppSelector((state) => state.tracks);
+  const { playlist } = useAppSelector((state) => state.player);
 
   useEffect(() => {
-    if (playlist.length === 0) {
-      setPlaylist(data);
+    if (status === 'idle') {
+      dispatch(fetchTracks());
     }
-  }, [playlist, setPlaylist]);
+  }, [status, dispatch]);
+
+  useEffect(() => {
+    if (items.length > 0 && playlist.length === 0) {
+      dispatch(setPlaylist(items));
+    }
+  }, [items, playlist.length, dispatch]);
+
+  if (status === 'loading') {
+    return <div className={styles.loading}>Загрузка треков...</div>;
+  }
+
+  if (status === 'failed') {
+    return <div className={styles.error}>Ошибка загрузки треков</div>;
+  }
+
+  const tracksToShow = playlist.length > 0 ? playlist : items;
 
   return (
     <div className={styles.content}>
@@ -29,13 +48,8 @@ export function Playlist() {
         </div>
       </div>
       <div className={styles.content__playlist}>
-        {playlist.map(track => (
-          <PlaylistItem 
-            key={track._id}
-            track={track}
-            isCurrentTrack={currentTrack?._id === track._id}
-            isPlaying={isPlaying}
-          />
+        {tracksToShow.map(track => (
+          <PlaylistItem key={track._id} track={track} />
         ))}
       </div>
     </div>

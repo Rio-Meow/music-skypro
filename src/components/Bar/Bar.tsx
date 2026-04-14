@@ -1,31 +1,38 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useAudioPlayerContext } from '@/context/AudioPlayerContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  togglePlay,
+  nextTrack,
+  prevTrack,
+  setIsRepeat,
+  setIsShuffle,
+  setCurrentTime,
+  setDuration,
+} from '@/store/slices/playerSlice';
 import Link from 'next/link';
 import cn from 'classnames';
 import styles from './Bar.module.css';
 
 export function Bar() {
+  const dispatch = useAppDispatch();
   const { 
     currentTrack, 
     isPlaying, 
-    togglePlay, 
-    nextTrack, 
-    prevTrack, 
     isRepeat, 
-    setIsRepeat, 
-    isShuffle, 
-    setIsShuffle 
-  } = useAudioPlayerContext();
+    isShuffle,
+    volume: reduxVolume,
+    isMuted: reduxIsMuted
+  } = useAppSelector((state) => state.player);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isRepeatRef = useRef(isRepeat);
   
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.5);
-  const [isMuted, setIsMuted] = useState(false);
+  const [currentTime, setCurrentTimeLocal] = useState(0);
+  const [duration, setDurationLocal] = useState(0);
+  const [volume, setVolumeLocal] = useState(0.5);
+  const [isMuted, setIsMutedLocal] = useState(false);
   
   useEffect(() => {
     isRepeatRef.current = isRepeat;
@@ -37,13 +44,17 @@ export function Bar() {
       
       const handleTimeUpdate = () => {
         if (audioRef.current) {
-          setCurrentTime(audioRef.current.currentTime);
+          const time = audioRef.current.currentTime;
+          setCurrentTimeLocal(time);
+          dispatch(setCurrentTime(time));
         }
       };
       
       const handleLoadedMetadata = () => {
         if (audioRef.current) {
-          setDuration(audioRef.current.duration);
+          const dur = audioRef.current.duration;
+          setDurationLocal(dur);
+          dispatch(setDuration(dur));
         }
       };
       
@@ -54,7 +65,7 @@ export function Bar() {
             audioRef.current.play().catch(() => {});
           }
         } else {
-          nextTrack();
+          dispatch(nextTrack());
         }
       };
       
@@ -71,7 +82,7 @@ export function Bar() {
         }
       };
     }
-  }, [nextTrack]);
+  }, [dispatch]);
   
   useEffect(() => {
     if (audioRef.current && currentTrack) {
@@ -96,6 +107,7 @@ export function Bar() {
     }
   }, [isPlaying, currentTrack]);
   
+  // Громкость
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -104,37 +116,38 @@ export function Bar() {
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = Number(e.target.value) / 100;
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
+    setVolumeLocal(newVolume);
+    setIsMutedLocal(newVolume === 0);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
     if (audioRef.current) {
       audioRef.current.currentTime = time;
-      setCurrentTime(time);
+      setCurrentTimeLocal(time);
+      dispatch(setCurrentTime(time));
     }
   };
 
   const handleRepeatClick = () => {
-    setIsRepeat(!isRepeat);
+    dispatch(setIsRepeat(!isRepeat));
   };
 
   const handleShuffleClick = () => {
-    setIsShuffle(!isShuffle);
+    dispatch(setIsShuffle(!isShuffle));
   };
 
   const handlePlayClick = () => {
-    togglePlay();
+    dispatch(togglePlay());
   };
 
   const toggleMute = () => {
     if (isMuted) {
-      setVolume(0.5);
-      setIsMuted(false);
+      setVolumeLocal(0.5);
+      setIsMutedLocal(false);
     } else {
-      setVolume(0);
-      setIsMuted(true);
+      setVolumeLocal(0);
+      setIsMutedLocal(true);
     }
   };
 
@@ -157,7 +170,7 @@ export function Bar() {
         <div className={styles.bar__playerBlock}>
           <div className={styles.bar__player}>
             <div className={styles.player__controls}>
-              <div className={styles.player__btnPrev} onClick={prevTrack}>
+              <div className={styles.player__btnPrev} onClick={() => dispatch(prevTrack())}>
                 <svg className={styles.player__btnPrevSvg}>
                   <use xlinkHref="/img/icon/sprite.svg#icon-prev"></use>
                 </svg>
@@ -167,7 +180,7 @@ export function Bar() {
                   <use xlinkHref={`/img/icon/sprite.svg#icon-${isPlaying ? 'pause' : 'play'}`}></use>
                 </svg>
               </div>
-              <div className={styles.player__btnNext} onClick={nextTrack}>
+              <div className={styles.player__btnNext} onClick={() => dispatch(nextTrack())}>
                 <svg className={styles.player__btnNextSvg}>
                   <use xlinkHref="/img/icon/sprite.svg#icon-next"></use>
                 </svg>

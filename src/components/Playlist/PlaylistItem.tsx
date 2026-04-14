@@ -2,7 +2,8 @@
 
 import cn from 'classnames';
 import Link from 'next/link';
-import { useAudioPlayerContext } from '@/context/AudioPlayerContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setCurrentTrack, setIsPlaying } from '@/store/slices/playerSlice';
 import styles from './PlaylistItem.module.css';
 
 interface Track {
@@ -17,12 +18,13 @@ interface Track {
 
 interface PlaylistItemProps {
   track: Track;
-  isCurrentTrack?: boolean;
-  isPlaying?: boolean;
 }
 
-export function PlaylistItem({ track, isCurrentTrack = false, isPlaying = false }: PlaylistItemProps) {
-  const { setCurrentTrack, setIsPlaying } = useAudioPlayerContext();
+export function PlaylistItem({ track }: PlaylistItemProps) {
+  const dispatch = useAppDispatch();
+  const { currentTrack, isPlaying } = useAppSelector((state) => state.player);
+  
+  const isTrackPlaying = currentTrack?._id === track._id && isPlaying;
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -48,12 +50,12 @@ export function PlaylistItem({ track, isCurrentTrack = false, isPlaying = false 
   };
 
   const handlePlayClick = () => {
-    setCurrentTrack(track);
-    setIsPlaying(true);
+    dispatch(setCurrentTrack(track));
+    dispatch(setIsPlaying(true));
   };
 
   return (
-    <div className={cn(styles.item, { [styles.playing]: isCurrentTrack && isPlaying })}>
+    <div className={cn(styles.item, { [styles.playing]: isTrackPlaying })}>
       <div className={styles.track}>
         <div className={styles.track__title}>
           <div 
@@ -61,9 +63,9 @@ export function PlaylistItem({ track, isCurrentTrack = false, isPlaying = false 
             onClick={handlePlayClick}
             style={{ cursor: 'pointer' }}
           >
-            {isCurrentTrack ? (
-              <div className={cn(styles.playingAnimation, { [styles.animate]: isPlaying })}>
-                <div className={styles.dot}></div>
+            {isTrackPlaying ? (
+              <div className={styles.playingAnimation}>
+                <span></span><span></span><span></span>
               </div>
             ) : (
               <svg className={styles.track__titleSvg}>
