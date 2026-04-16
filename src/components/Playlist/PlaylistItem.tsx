@@ -24,7 +24,8 @@ export function PlaylistItem({ track }: PlaylistItemProps) {
   const dispatch = useAppDispatch();
   const { currentTrack, isPlaying } = useAppSelector((state) => state.player);
   
-  const isTrackPlaying = currentTrack?._id === track._id && isPlaying;
+  const isCurrentTrack = currentTrack?._id === track._id;
+  const isTrackPlaying = isCurrentTrack && isPlaying;
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -50,12 +51,13 @@ export function PlaylistItem({ track }: PlaylistItemProps) {
   };
 
   const handlePlayClick = () => {
+    console.log('Playing track:', track.name);
     dispatch(setCurrentTrack(track));
     dispatch(setIsPlaying(true));
   };
 
   return (
-    <div className={cn(styles.item, { [styles.playing]: isTrackPlaying })}>
+    <div className={cn(styles.item, { [styles.playing]: isCurrentTrack && isTrackPlaying })}>
       <div className={styles.track}>
         <div className={styles.track__title}>
           <div 
@@ -63,9 +65,9 @@ export function PlaylistItem({ track }: PlaylistItemProps) {
             onClick={handlePlayClick}
             style={{ cursor: 'pointer' }}
           >
-            {isTrackPlaying ? (
-              <div className={styles.playingAnimation}>
-                <span></span><span></span><span></span>
+            {isCurrentTrack ? (
+              <div className={cn(styles.playingAnimation, { [styles.animate]: isTrackPlaying })}>
+                <div className={styles.dot}></div>
               </div>
             ) : (
               <svg className={styles.track__titleSvg}>
