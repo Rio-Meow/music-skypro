@@ -7,11 +7,11 @@ interface UseAudioPlayerProps {
 
 export const useAudioPlayer = ({ src, onEnded }: UseAudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -27,31 +27,33 @@ export const useAudioPlayer = ({ src, onEnded }: UseAudioPlayerProps) => {
       const handleLoadedMetadata = () => {
         if (audioRef.current) {
           setDuration(audioRef.current.duration);
+          setIsLoading(false);
         }
       };
       
       const handleEnded = () => {
-        setIsPlaying(false);
+        console.log('Audio ended, calling onEnded');
         if (onEnded) onEnded();
       };
       
-      const handlePlay = () => setIsPlaying(true);
-      const handlePause = () => setIsPlaying(false);
+      const handleWaiting = () => setIsLoading(true);
+      const handleCanPlay = () => setIsLoading(false);
       
       audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
       audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
       audioRef.current.addEventListener('ended', handleEnded);
-      audioRef.current.addEventListener('play', handlePlay);
-      audioRef.current.addEventListener('pause', handlePause);
+      audioRef.current.addEventListener('waiting', handleWaiting);
+      audioRef.current.addEventListener('canplay', handleCanPlay);
       
       return () => {
         if (audioRef.current) {
           audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
           audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
           audioRef.current.removeEventListener('ended', handleEnded);
-          audioRef.current.removeEventListener('play', handlePlay);
-          audioRef.current.removeEventListener('pause', handlePause);
+          audioRef.current.removeEventListener('waiting', handleWaiting);
+          audioRef.current.removeEventListener('canplay', handleCanPlay);
           audioRef.current.pause();
+          audioRef.current.src = '';
         }
       };
     }
@@ -59,36 +61,24 @@ export const useAudioPlayer = ({ src, onEnded }: UseAudioPlayerProps) => {
 
   useEffect(() => {
     if (audioRef.current && src) {
-      const wasPlaying = isPlaying;
+      console.log('Loading src:', src);
+      setIsLoading(true);
       audioRef.current.src = src;
       audioRef.current.load();
-      
-      if (wasPlaying) {
-        audioRef.current.play().catch(console.error);
-      }
     }
   }, [src]);
 
   const play = () => {
     if (audioRef.current && src) {
-      audioRef.current.play()
-        .then(() => setIsPlaying(true))
-        .catch(console.error);
+      console.log('Play called');
+      audioRef.current.play().catch(console.error);
     }
   };
 
   const pause = () => {
     if (audioRef.current) {
+      console.log('Pause called');
       audioRef.current.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const togglePlay = () => {
-    if (isPlaying) {
-      pause();
-    } else {
-      play();
     }
   };
 
@@ -128,14 +118,13 @@ export const useAudioPlayer = ({ src, onEnded }: UseAudioPlayerProps) => {
   };
 
   return {
-    isPlaying,
     currentTime,
     duration,
     volume,
     isMuted,
+    isLoading,
     play,
     pause,
-    togglePlay,
     seek,
     changeVolume,
     toggleMute,
