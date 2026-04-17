@@ -4,6 +4,7 @@
   margin-bottom: 51px;
   gap: 10px;
   position: relative;
+  flex-wrap: wrap;
 }
 
 .filter__title {
@@ -27,6 +28,9 @@
   background: transparent;
   cursor: pointer;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .filter__button:hover {
@@ -40,6 +44,16 @@
   background: rgba(173, 97, 255, 0.1);
 }
 
+.clearBtn {
+  font-size: 16px;
+  cursor: pointer;
+  color: #ad61ff;
+}
+
+.clearBtn:hover {
+  color: #d9b6ff;
+}
+
 .filter__dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -49,6 +63,7 @@
   padding: 16px;
   z-index: 100;
   min-width: 200px;
+  max-width: 280px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
@@ -88,6 +103,23 @@
   color: #d9b6ff;
 }
 
-.filter__item.activeSort {
+.filter__item.selected {
   color: #ad61ff;
+}
+
+.clearAllBtn {
+  background: none;
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  border-radius: 60px;
+  padding: 6px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearAllBtn:hover {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: #ff6666;
+  color: #ff6666;
 }
