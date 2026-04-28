@@ -53,11 +53,6 @@ export function Burger() {
                 Мой плейлист
               </Link>
             </li>
-            <li className={styles.menuItem}>
-              <Link href="/signin" className={styles.menuLink} onClick={() => setIsOpen(false)}>
-                Войти
-              </Link>
-            </li>
           </ul>
         </div>
       )}

@@ -1,17 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-
-export interface Track {
-  _id: number;
-  name: string;
-  author: string;
-  album: string;
-  duration_in_seconds: number;
-  track_file: string;
-  logo: string | null;
-  genre: string[];
-  release_date: string;
-  stared_user: any[];
-}
+import { getAllTracks, Track } from '@/api/tracks';
 
 interface TracksState {
   items: Track[];
@@ -25,11 +13,8 @@ const initialState: TracksState = {
   error: null,
 };
 
-// Асинхронный thunk для получения треков из API
 export const fetchTracks = createAsyncThunk('tracks/fetchTracks', async () => {
-  const response = await fetch('https://webdev-music-003b5b991590.herokuapp.com/catalog/track/all/');
-  const data = await response.json();
-  return data.data;
+  return await getAllTracks();
 });
 
 const tracksSlice = createSlice({
@@ -40,6 +25,7 @@ const tracksSlice = createSlice({
     builder
       .addCase(fetchTracks.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchTracks.fulfilled, (state, action: PayloadAction<Track[]>) => {
         state.status = 'succeeded';
