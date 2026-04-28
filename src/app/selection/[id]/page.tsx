@@ -7,6 +7,7 @@ import Link from 'next/link';
 import cn from 'classnames';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPlaylist } from '@/store/slices/playerSlice';
+import { fetchTracks } from '@/store/slices/tracksSlice';
 import { PlaylistItem } from '@/components/Playlist/PlaylistItem';
 import { Search } from '@/components/Search/Search';
 import { Filter } from '@/components/Filter/Filter';
@@ -25,32 +26,38 @@ export default function SelectionPage() {
   const [selectionTracks, setSelectionTracks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') {
-      return;
+    if (status === 'idle') {
+      dispatch(fetchTracks());
     }
-    
-    if (status === 'succeeded' && items.length > 0 && loading) {
+  }, [status, dispatch]);
+
+  useEffect(() => {
+    if (status === 'succeeded' && items.length > 0 && !initialized) {
       try {
         const selection = getSelectionById(Number(id), items);
         setSelectionName(selection.name);
         setSelectionTracks(selection.items);
         dispatch(setPlaylist(selection.items));
         setLoading(false);
+        setInitialized(true);
       } catch (err) {
         setError('Подборка не найдена');
         setLoading(false);
+        setInitialized(true);
       }
     }
     
-    if (status === 'failed' && loading) {
+    if (status === 'failed' && !initialized) {
       setError('Не удалось загрузить треки');
       setLoading(false);
+      setInitialized(true);
     }
-  }, [id, items, status, dispatch, loading]);
+  }, [id, items, status, dispatch, initialized]);
 
-  if (loading && status !== 'loading') {
+  if (loading || status === 'loading') {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loading}>Загрузка подборки...</div>
@@ -72,7 +79,7 @@ export default function SelectionPage() {
   if (!selectionTracks.length) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loading}>Загрузка треков...</div>
+        <div className={styles.loading}>Нет треков в подборке</div>
       </div>
     );
   }
@@ -89,6 +96,7 @@ export default function SelectionPage() {
                 className={styles.logo__image}
                 src="/img/logo.png"
                 alt="logo"
+                priority
               />
             </div>
             <div className={styles.nav__burger}>
@@ -153,6 +161,7 @@ export default function SelectionPage() {
                       alt="playlist"
                       width={250}
                       height={150}
+                      priority
                     />
                   </Link>
                 </div>
@@ -164,6 +173,7 @@ export default function SelectionPage() {
                       alt="playlist"
                       width={250}
                       height={150}
+                      priority
                     />
                   </Link>
                 </div>
@@ -175,6 +185,7 @@ export default function SelectionPage() {
                       alt="playlist"
                       width={250}
                       height={150}
+                      priority
                     />
                   </Link>
                 </div>
