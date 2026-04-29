@@ -49,7 +49,7 @@ export function Burger() {
               </Link>
             </li>
             <li className={styles.menuItem}>
-              <Link href="/playlist" className={styles.menuLink} onClick={() => setIsOpen(false)}>
+              <Link href="#" className={styles.menuLink} onClick={() => setIsOpen(false)}>
                 Мой плейлист
               </Link>
             </li>

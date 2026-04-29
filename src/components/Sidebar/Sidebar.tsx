@@ -2,22 +2,25 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import styles from './Sidebar.module.css';
 
 export function Sidebar() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
 
   const handleLogout = () => {
     dispatch(logout());
+    router.push('/signin');
   };
 
   return (
     <div className={styles.sidebar}>
       <div className={styles.sidebar__personal}>
         <p className={styles.sidebar__personalName}>Sergey.Ivanov</p>
-        <div className={styles.sidebar__icon} onClick={handleLogout}>
+        <div className={styles.sidebar__icon} onClick={handleLogout} style={{ cursor: 'pointer' }}>
           <svg width="24" height="24" viewBox="0 0 24 24">
             <use xlinkHref="/img/icon/sprite.svg#logout"></use>
           </svg>
