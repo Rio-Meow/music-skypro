@@ -1,6 +1,7 @@
 .content {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .content__title {
@@ -9,12 +10,8 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
-}
-
-.content__playlist {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #4e4e4e;
 }
 
 .playlistTitle__col {
@@ -49,4 +46,69 @@
 .col04 {
   width: 60px;
   text-align: end;
+}
+
+.content__playlist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: visible;
+  max-height: none;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: #ffffff;
+  gap: 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #4e4e4e;
+  border-top-color: #580ea2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: #ff4444;
+  gap: 20px;
+}
+
+.retryBtn {
+  padding: 10px 24px;
+  background-color: #580ea2;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.retryBtn:hover {
+  background-color: #3f007d;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: #696969;
 }
