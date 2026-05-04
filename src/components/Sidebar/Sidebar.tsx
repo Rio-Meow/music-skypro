@@ -3,23 +3,27 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import styles from './Sidebar.module.css';
 
 export function Sidebar() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const handleLogout = () => {
     dispatch(logout());
     router.push('/signin');
   };
 
+  const userName = user?.username || user?.email || 'Гость';
+  const displayName = isAuthenticated ? userName : 'Гость';
+
   return (
     <div className={styles.sidebar}>
       <div className={styles.sidebar__personal}>
-        <p className={styles.sidebar__personalName}>Sergey.Ivanov</p>
+        <p className={styles.sidebar__personalName}>{displayName}</p>
         <div className={styles.sidebar__icon} onClick={handleLogout} style={{ cursor: 'pointer' }}>
           <svg width="24" height="24" viewBox="0 0 24 24">
             <use xlinkHref="/img/icon/sprite.svg#logout"></use>

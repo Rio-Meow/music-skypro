@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useAppSelector } from '@/store/hooks';
 import styles from './Burger.module.css';
 
 export function Burger() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLDivElement>(null);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -49,10 +51,17 @@ export function Burger() {
               </Link>
             </li>
             <li className={styles.menuItem}>
-              <Link href="#" className={styles.menuLink} onClick={() => setIsOpen(false)}>
+              <Link href="/playlist" className={styles.menuLink} onClick={() => setIsOpen(false)}>
                 Мой плейлист
               </Link>
             </li>
+            {!isAuthenticated && (
+              <li className={styles.menuItem}>
+                <Link href="/signin" className={styles.menuLink} onClick={() => setIsOpen(false)}>
+                  Войти
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       )}
