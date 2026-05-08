@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   togglePlay,
@@ -11,6 +11,7 @@ import {
   setCurrentTime,
   setDuration,
 } from '@/store/slices/playerSlice';
+import { addToFavorites, removeFromFavorites, fetchFavorites } from '@/store/slices/favoritesSlice';
 import Link from 'next/link';
 import cn from 'classnames';
 import styles from './Bar.module.css';
@@ -22,28 +23,34 @@ export function Bar() {
     isPlaying, 
     isRepeat, 
     isShuffle,
-    volume: reduxVolume,
-    isMuted: reduxIsMuted
   } = useAppSelector((state) => state.player);
+  const { accessToken, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { items: favorites } = useAppSelector((state) => state.favorites);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isRepeatRef = useRef(isRepeat);
+  const isPlayingRef = useRef(isPlaying);
+  const isLoadingRef = useRef(false);
   
   const [currentTime, setCurrentTimeLocal] = useState(0);
   const [duration, setDurationLocal] = useState(0);
   const [volume, setVolumeLocal] = useState(0.5);
   const [isMuted, setIsMutedLocal] = useState(false);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
   
+  const isLiked = currentTrack ? favorites.some(fav => fav._id === currentTrack._id) : false;
+
   useEffect(() => {
     isRepeatRef.current = isRepeat;
-  }, [isRepeat]);
+    isPlayingRef.current = isPlaying;
+  }, [isRepeat, isPlaying]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
       audioRef.current = new Audio();
       
       const handleTimeUpdate = () => {
-        if (audioRef.current) {
+        if (audioRef.current && !isLoadingRef.current) {
           const time = audioRef.current.currentTime;
           setCurrentTimeLocal(time);
           dispatch(setCurrentTime(time));
@@ -55,6 +62,13 @@ export function Bar() {
           const dur = audioRef.current.duration;
           setDurationLocal(dur);
           dispatch(setDuration(dur));
+          isLoadingRef.current = false;
+        }
+      };
+      
+      const handleCanPlay = () => {
+        if (audioRef.current && isPlayingRef.current && !isLoadingRef.current) {
+          audioRef.current.play().catch((err) => console.error('Play error:', err));
         }
       };
       
@@ -69,16 +83,26 @@ export function Bar() {
         }
       };
       
+      const handleError = (e: any) => {
+        console.error('Audio error:', e);
+        isLoadingRef.current = false;
+      };
+      
       audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
       audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+      audioRef.current.addEventListener('canplay', handleCanPlay);
       audioRef.current.addEventListener('ended', handleEnded);
+      audioRef.current.addEventListener('error', handleError);
       
       return () => {
         if (audioRef.current) {
           audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
           audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+          audioRef.current.removeEventListener('canplay', handleCanPlay);
           audioRef.current.removeEventListener('ended', handleEnded);
+          audioRef.current.removeEventListener('error', handleError);
           audioRef.current.pause();
+          audioRef.current.src = '';
         }
       };
     }
@@ -86,43 +110,65 @@ export function Bar() {
   
   useEffect(() => {
     if (audioRef.current && currentTrack) {
-      const wasPlaying = isPlaying;
+      isLoadingRef.current = true;
+      const currentVolume = audioRef.current.volume;
+      
       audioRef.current.src = currentTrack.track_file;
       audioRef.current.load();
-      audioRef.current.volume = volume;
-      
-      if (wasPlaying) {
-        audioRef.current.play().catch(() => {});
-      }
+      audioRef.current.volume = currentVolume;
     }
   }, [currentTrack]);
   
   useEffect(() => {
-    if (audioRef.current && currentTrack) {
+    if (audioRef.current && currentTrack && !isLoadingRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(() => {});
+        audioRef.current.play().catch((err) => console.error('Play error:', err));
       } else {
         audioRef.current.pause();
       }
     }
   }, [isPlaying, currentTrack]);
   
-  // Громкость
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
   }, [volume]);
 
+  const handleLikeClick = useCallback(async () => {
+    if (!isAuthenticated || !currentTrack) {
+      alert('Необходимо авторизоваться');
+      return;
+    }
+    
+    setIsLikeLoading(true);
+    try {
+      if (isLiked) {
+        await dispatch(removeFromFavorites({ trackId: currentTrack._id, accessToken: accessToken! })).unwrap();
+      } else {
+        await dispatch(addToFavorites({ trackId: currentTrack._id, accessToken: accessToken! })).unwrap();
+        await dispatch(fetchFavorites(accessToken!));
+      }
+    } catch (error: any) {
+      console.error('Error toggling like:', error);
+      alert('Ошибка при изменении статуса лайка');
+    } finally {
+      setIsLikeLoading(false);
+    }
+  }, [isAuthenticated, currentTrack, isLiked, accessToken, dispatch]);
+
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = Number(e.target.value) / 100;
     setVolumeLocal(newVolume);
     setIsMutedLocal(newVolume === 0);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = Number(e.target.value);
-    if (audioRef.current) {
+    if (audioRef.current && !isLoadingRef.current) {
       audioRef.current.currentTime = time;
       setCurrentTimeLocal(time);
       dispatch(setCurrentTime(time));
@@ -145,9 +191,15 @@ export function Bar() {
     if (isMuted) {
       setVolumeLocal(0.5);
       setIsMutedLocal(false);
+      if (audioRef.current) {
+        audioRef.current.volume = 0.5;
+      }
     } else {
       setVolumeLocal(0);
       setIsMutedLocal(true);
+      if (audioRef.current) {
+        audioRef.current.volume = 0;
+      }
     }
   };
 
@@ -216,6 +268,18 @@ export function Bar() {
                     </Link>
                   </div>
                 </div>
+              </div>
+              <div className={styles.trackPlay__like}>
+                <button 
+                  className={cn(styles.likeBtn, { [styles.liked]: isLiked })}
+                  onClick={handleLikeClick}
+                  disabled={isLikeLoading}
+                  aria-label={isLiked ? 'Удалить из избранного' : 'Добавить в избранное'}
+                >
+                  <svg className={styles.trackPlay__likeSvg}>
+                    <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
+                  </svg>
+                </button>
               </div>
             </div>
             

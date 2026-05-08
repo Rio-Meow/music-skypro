@@ -24,11 +24,13 @@ export function Sidebar() {
     <div className={styles.sidebar}>
       <div className={styles.sidebar__personal}>
         <p className={styles.sidebar__personalName}>{displayName}</p>
-        <div className={styles.sidebar__icon} onClick={handleLogout} style={{ cursor: 'pointer' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24">
-            <use xlinkHref="/img/icon/sprite.svg#logout"></use>
-          </svg>
-        </div>
+        {isAuthenticated && (
+          <div className={styles.sidebar__icon} onClick={handleLogout}>
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <use xlinkHref="/img/icon/sprite.svg#logout"></use>
+            </svg>
+          </div>
+        )}
       </div>
       <div className={styles.sidebar__block}>
         <div className={styles.sidebar__list}>

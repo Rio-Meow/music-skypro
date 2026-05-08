@@ -18,6 +18,36 @@ const initialState: AuthState = {
   error: null,
 };
 
+export const refreshAccessToken = createAsyncThunk(
+  'auth/refresh',
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState() as { auth: AuthState };
+    const refreshToken = state.auth.refreshToken || localStorage.getItem('refreshToken');
+    
+    if (!refreshToken) {
+      return rejectWithValue('No refresh token');
+    }
+    
+    try {
+      const response = await fetch('https://webdev-music-003b5b991590.herokuapp.com/user/token/refresh/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to refresh token');
+      }
+      
+      const data = await response.json();
+      localStorage.setItem('accessToken', data.access);
+      return data.access;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (data: { email: string; password: string }, { rejectWithValue }) => {
@@ -47,7 +77,10 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('refreshToken', tokens.refresh);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      return { tokens, user: userData };
+      return { 
+        tokens, 
+        user: userData
+      };
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
@@ -161,6 +194,9 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
         state.isAuthenticated = true;
+      })
+      .addCase(refreshAccessToken.fulfilled, (state, action) => {
+        state.accessToken = action.payload;
       });
   },
 });

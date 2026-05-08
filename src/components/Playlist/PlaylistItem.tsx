@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useEffect, useCallback, memo } from 'react';
 import cn from 'classnames';
 import Link from 'next/link';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setCurrentTrack, setIsPlaying } from '@/store/slices/playerSlice';
+import { addToFavorites, removeFromFavorites, fetchFavorites } from '@/store/slices/favoritesSlice';
 import styles from './PlaylistItem.module.css';
 
 interface Track {
@@ -14,26 +16,33 @@ interface Track {
   duration_in_seconds: number;
   track_file: string;
   logo: string | null;
+  stared_user: any[];
 }
 
 interface PlaylistItemProps {
   track: Track;
 }
 
-export function PlaylistItem({ track }: PlaylistItemProps) {
+const PlaylistItemComponent = ({ track }: PlaylistItemProps) => {
   const dispatch = useAppDispatch();
   const { currentTrack, isPlaying } = useAppSelector((state) => state.player);
+  const { accessToken, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { items: favorites } = useAppSelector((state) => state.favorites);
+  
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
   
   const isCurrentTrack = currentTrack?._id === track._id;
   const isTrackPlaying = isCurrentTrack && isPlaying;
+  
+  const isLiked = favorites.some(fav => fav._id === track._id);
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = useCallback((seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const formatTrackName = (name: string) => {
+  const formatTrackName = useCallback((name: string) => {
     const bracketRegex = /\([^)]*\)/g;
     const parts = name.split(bracketRegex);
     const brackets = name.match(bracketRegex);
@@ -48,12 +57,34 @@ export function PlaylistItem({ track }: PlaylistItemProps) {
       );
     }
     return name;
-  };
+  }, []);
 
-  const handlePlayClick = () => {
+  const handlePlayClick = useCallback(() => {
     dispatch(setCurrentTrack(track));
     dispatch(setIsPlaying(true));
-  };
+  }, [dispatch, track]);
+
+  const handleLikeClick = useCallback(async () => {
+    if (!isAuthenticated) {
+      alert('Необходимо авторизоваться');
+      return;
+    }
+    
+    setIsLikeLoading(true);
+    try {
+      if (isLiked) {
+        await dispatch(removeFromFavorites({ trackId: track._id, accessToken: accessToken! })).unwrap();
+      } else {
+        await dispatch(addToFavorites({ trackId: track._id, accessToken: accessToken! })).unwrap();
+        await dispatch(fetchFavorites(accessToken!));
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      alert('Ошибка при изменении статуса лайка');
+    } finally {
+      setIsLikeLoading(false);
+    }
+  }, [isAuthenticated, isLiked, track._id, accessToken, dispatch]);
 
   return (
     <div className={cn(styles.item, { [styles.playing]: isCurrentTrack && isTrackPlaying })}>
@@ -91,12 +122,21 @@ export function PlaylistItem({ track }: PlaylistItemProps) {
           </Link>
         </div>
         <div className={styles.track__time}>
-          <svg className={styles.track__timeSvg}>
-            <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
-          </svg>
+          <button 
+            className={cn(styles.likeBtn, { [styles.liked]: isLiked })}
+            onClick={handleLikeClick}
+            disabled={isLikeLoading}
+            aria-label={isLiked ? 'Удалить из избранного' : 'Добавить в избранное'}
+          >
+            <svg className={styles.track__timeSvg}>
+              <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>
+            </svg>
+          </button>
           <span className={styles.track__timeText}>{formatDuration(track.duration_in_seconds)}</span>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export const PlaylistItem = memo(PlaylistItemComponent);

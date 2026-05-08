@@ -27,7 +27,7 @@
   background-color: #1a1a1a;
   border-radius: 12px;
   padding: 16px 24px;
-  z-index: 100;
+  z-index: 1000;
   min-width: 200px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
@@ -52,9 +52,6 @@
   font-size: 16px;
   line-height: 24px;
   white-space: nowrap;
-  background: none;
-  border: none;
-  cursor: pointer;
   display: block;
 }
 
@@ -62,25 +59,18 @@
   color: #d9b6ff;
 }
 
-.userName {
-  color: #d9b6ff;
-  font-size: 14px;
-  line-height: 24px;
-  white-space: nowrap;
-  display: block;
-}
-
-.logoutBtn {
+.menuButton {
   background: none;
   border: none;
-  color: #ff4444;
+  color: #ffffff;
   font-size: 16px;
   line-height: 24px;
   cursor: pointer;
   padding: 0;
   font-family: inherit;
+  white-space: nowrap;
 }
 
-.logoutBtn:hover {
-  color: #ff6666;
+.menuButton:hover {
+  color: #d9b6ff;
 }

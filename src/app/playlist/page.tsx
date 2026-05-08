@@ -1,17 +1,84 @@
 'use client';
 
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import cn from 'classnames';
-import { useAppSelector } from '@/store/hooks';
-import { Nav } from '@/components/Nav/Nav';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setPlaylist } from '@/store/slices/playerSlice';
+import { logout } from '@/store/slices/authSlice';
+import { PlaylistItem } from '@/components/Playlist/PlaylistItem';
 import { Search } from '@/components/Search/Search';
 import { Filter } from '@/components/Filter/Filter';
 import { Bar } from '@/components/Bar/Bar';
+import { fetchFavorites } from '@/store/slices/favoritesSlice';
 import styles from './page.module.css';
 
 export default function PlaylistPage() {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, accessToken, user } = useAppSelector((state) => state.auth);
+  const { items: favoriteTracks, status } = useAppSelector((state) => state.favorites);
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push('/signin');
+  };
+
+  const loadFavorites = useCallback(async () => {
+    if (!isAuthenticated || !accessToken) return;
+    
+    try {
+      setLoading(true);
+      await dispatch(fetchFavorites(accessToken)).unwrap();
+      setError(null);
+    } catch (err) {
+      setError('Не удалось загрузить избранные треки');
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, accessToken, dispatch]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/signin');
+    } else {
+      loadFavorites();
+    }
+  }, [isAuthenticated, router, loadFavorites]);
+
+  useEffect(() => {
+    if (favoriteTracks.length > 0) {
+      dispatch(setPlaylist(favoriteTracks));
+    }
+  }, [favoriteTracks, dispatch]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (loading || status === 'loading') {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.loading}>Загрузка избранного...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.error}>{error}</div>
+        <button onClick={loadFavorites} className={styles.retryBtn}>
+          Попробовать снова
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -41,11 +108,6 @@ export default function PlaylistPage() {
                 <li className={styles.menu__item}>
                   <Link href="/playlist" className={styles.menu__link}>Мой плейлист</Link>
                 </li>
-                {!isAuthenticated && (
-                  <li className={styles.menu__item}>
-                    <Link href="/signin" className={styles.menu__link}>Войти</Link>
-                  </li>
-                )}
               </ul>
             </div>
           </nav>
@@ -66,21 +128,30 @@ export default function PlaylistPage() {
                 </div>
               </div>
               <div className={styles.content__playlist}>
-                <div className={styles.empty}>
-                  <p>У вас пока нет добавленных треков</p>
-                </div>
+                {favoriteTracks.length === 0 ? (
+                  <div className={styles.empty}>
+                    <p>У вас пока нет избранных треков</p>
+                    <Link href="/" className={styles.goHomeBtn}>На главную</Link>
+                  </div>
+                ) : (
+                  favoriteTracks.map((track) => (
+                    <PlaylistItem key={track._id} track={track} />
+                  ))
+                )}
               </div>
             </div>
           </div>
           
-          <div className={styles.main__sidebar}>
+          <div className={styles.sidebar}>
             <div className={styles.sidebar__personal}>
-              <p className={styles.sidebar__personalName}>Sergey.Ivanov</p>
-              <div className={styles.sidebar__icon}>
-                <svg>
-                  <use xlinkHref="/img/icon/sprite.svg#logout"></use>
-                </svg>
-              </div>
+              <p className={styles.sidebar__personalName}>{user?.username || user?.email || 'Гость'}</p>
+              {isAuthenticated && (
+                <div className={styles.sidebar__icon} onClick={handleLogout}>
+                  <svg width="24" height="24" viewBox="0 0 24 24">
+                    <use xlinkHref="/img/icon/sprite.svg#logout"></use>
+                  </svg>
+                </div>
+              )}
             </div>
             <div className={styles.sidebar__block}>
               <div className={styles.sidebar__list}>
@@ -128,4 +199,4 @@ export default function PlaylistPage() {
       </div>
     </div>
   );
-} 
+}

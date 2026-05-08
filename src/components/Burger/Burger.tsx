@@ -2,10 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useAppSelector } from '@/store/hooks';
+import { useRouter } from 'next/navigation';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { logout } from '@/store/slices/authSlice';
 import styles from './Burger.module.css';
 
 export function Burger() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const burgerRef = useRef<HTMLDivElement>(null);
@@ -13,6 +17,12 @@ export function Burger() {
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsOpen(false);
+    router.push('/signin');
   };
 
   useEffect(() => {
@@ -55,7 +65,13 @@ export function Burger() {
                 Мой плейлист
               </Link>
             </li>
-            {!isAuthenticated && (
+            {isAuthenticated ? (
+              <li className={styles.menuItem}>
+                <button onClick={handleLogout} className={styles.menuButton}>
+                  Выйти
+                </button>
+              </li>
+            ) : (
               <li className={styles.menuItem}>
                 <Link href="/signin" className={styles.menuLink} onClick={() => setIsOpen(false)}>
                   Войти

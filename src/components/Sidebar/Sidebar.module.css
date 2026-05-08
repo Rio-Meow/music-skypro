@@ -1,13 +1,17 @@
 .sidebar {
   max-width: 418px;
   padding: 20px 90px 20px 78px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar__personal {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 12px 0 15px 0;
+  margin-bottom: 40px;
+  flex-shrink: 0;
 }
 
 .sidebar__personalName {
@@ -35,9 +39,13 @@
 }
 
 .sidebar__block {
-  padding: 40px 0 20px 0;
-  display: flex;
-  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.sidebar__block::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar__list {
@@ -49,31 +57,17 @@
 
 .sidebar__item {
   width: 250px;
-  text-align: center;
+  height: 150px;
 }
 
 .sidebar__link {
   width: 100%;
   height: 100%;
   display: block;
-  text-decoration: none;
-  transition: transform 0.2s;
-}
-
-.sidebar__link:hover {
-  transform: scale(1.02);
 }
 
 .sidebar__img {
   width: 100%;
   height: auto;
   border-radius: 10px;
-}
-
-.sidebar__title {
-  display: block;
-  margin-top: 8px;
-  font-size: 14px;
-  color: #ffffff;
-  text-align: center;
 }
