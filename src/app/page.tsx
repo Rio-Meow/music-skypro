@@ -1,3 +1,5 @@
+'use client';
+
 import { Nav } from '@/components/Nav/Nav';
 import { Centerblock } from '@/components/Centerblock/Centerblock';
 import { Sidebar } from '@/components/Sidebar/Sidebar';

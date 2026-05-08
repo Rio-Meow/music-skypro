@@ -24,11 +24,11 @@
   top: 100%;
   left: 0;
   margin-top: 16px;
-  background-color: #181818;
+  background-color: #1a1a1a;
   border-radius: 12px;
   padding: 16px 24px;
   z-index: 100;
-  min-width: 180px;
+  min-width: 200px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
@@ -52,8 +52,35 @@
   font-size: 16px;
   line-height: 24px;
   white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: block;
 }
 
 .menuLink:hover {
   color: #d9b6ff;
+}
+
+.userName {
+  color: #d9b6ff;
+  font-size: 14px;
+  line-height: 24px;
+  white-space: nowrap;
+  display: block;
+}
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: #ff4444;
+  font-size: 16px;
+  line-height: 24px;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.logoutBtn:hover {
+  color: #ff6666;
 }

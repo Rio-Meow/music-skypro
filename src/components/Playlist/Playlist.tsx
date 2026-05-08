@@ -10,7 +10,7 @@ import styles from './Playlist.module.css';
 
 export function Playlist() {
   const dispatch = useAppDispatch();
-  const { items, status } = useAppSelector((state) => state.tracks);
+  const { items, status, error } = useAppSelector((state) => state.tracks);
   const { playlist } = useAppSelector((state) => state.player);
 
   useEffect(() => {
@@ -26,14 +26,34 @@ export function Playlist() {
   }, [items, playlist.length, dispatch]);
 
   if (status === 'loading') {
-    return <div className={styles.loading}>Загрузка треков...</div>;
+    return (
+      <div className={styles.loading}>
+        <div className={styles.spinner}></div>
+        <p>Загрузка треков...</p>
+      </div>
+    );
   }
 
   if (status === 'failed') {
-    return <div className={styles.error}>Ошибка загрузки треков</div>;
+    return (
+      <div className={styles.error}>
+        <p>Ошибка загрузки треков: {error}</p>
+        <button onClick={() => dispatch(fetchTracks())} className={styles.retryBtn}>
+          Попробовать снова
+        </button>
+      </div>
+    );
   }
 
   const tracksToShow = playlist.length > 0 ? playlist : items;
+
+  if (tracksToShow.length === 0) {
+    return (
+      <div className={styles.empty}>
+        <p>Нет доступных треков</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.content}>

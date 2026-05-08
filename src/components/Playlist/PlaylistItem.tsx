@@ -51,7 +51,6 @@ export function PlaylistItem({ track }: PlaylistItemProps) {
   };
 
   const handlePlayClick = () => {
-    console.log('Playing track:', track.name);
     dispatch(setCurrentTrack(track));
     dispatch(setIsPlaying(true));
   };
