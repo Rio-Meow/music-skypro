@@ -1,8 +1,7 @@
 .nav {
-  width: 244px;
+  width: 200px;
   background-color: #181818;
-  padding: 20px 0 20px 36px;
-  position: relative;
+  padding: 20px 0 20px 20px;
 }
 
 .nav__logo {
@@ -15,4 +14,47 @@
 .logo__image {
   width: 113.33px;
   height: 17px;
+}
+
+.nav__burger {
+  width: 20px;
+  height: 36px;
+  padding: 13px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.burger__line {
+  display: inline-block;
+  width: 100%;
+  height: 1px;
+  background-color: #d3d3d3;
+}
+
+.nav__menu {
+  display: block;
+  margin-top: 20px;
+}
+
+.menu__list {
+  padding: 18px 0 10px 0;
+}
+
+.menu__item {
+  padding: 5px 0;
+  margin-bottom: 16px;
+}
+
+.menu__link {
+  color: #ffffff;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  text-decoration: none;
+}
+
+.menu__link:hover {
+  color: #d9b6ff;
 }

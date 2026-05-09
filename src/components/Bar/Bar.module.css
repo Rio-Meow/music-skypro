@@ -253,3 +253,87 @@
 .active {
   stroke: #580ea2 !important;
 }
+
+.trackPlay__like {
+  margin-left: 20px;
+}
+
+.likeBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.likeBtn:hover {
+  transform: scale(1.1);
+}
+
+.likeBtn:active {
+  transform: scale(0.95);
+}
+
+.likeBtn .trackPlay__likeSvg {
+  width: 18px;
+  height: 18px;
+  fill: transparent;
+  stroke: #696969;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.likeBtn.liked .trackPlay__likeSvg {
+  fill: #580ea2;
+  stroke: #580ea2;
+}
+
+.likeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.trackPlay__like {
+  margin-left: 20px;
+}
+
+.likeBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.likeBtn:hover {
+  transform: scale(1.1);
+}
+
+.likeBtn:active {
+  transform: scale(0.95);
+}
+
+.likeBtn .trackPlay__likeSvg {
+  width: 18px;
+  height: 18px;
+  fill: transparent;
+  stroke: #696969;
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.likeBtn.liked .trackPlay__likeSvg {
+  fill: #580ea2;
+  stroke: #580ea2;
+}
+
+.likeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
