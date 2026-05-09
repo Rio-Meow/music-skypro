@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import cn from 'classnames';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setPlaylist } from '@/store/slices/playerSlice';
@@ -12,7 +12,6 @@ type YearSortType = 'newest' | 'oldest' | null;
 export function Filter() {
   const dispatch = useAppDispatch();
   const { items } = useAppSelector((state) => state.tracks);
-  const { playlist } = useAppSelector((state) => state.player);
   
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const [authors, setAuthors] = useState<string[]>([]);
@@ -33,7 +32,7 @@ export function Filter() {
     }
   }, [items]);
 
-  useEffect(() => {
+  const filterAndSortTracks = useCallback(() => {
     let filtered = [...items];
     
     if (selectedAuthor) {
@@ -59,7 +58,11 @@ export function Filter() {
     }
     
     dispatch(setPlaylist(filtered));
-  }, [selectedAuthor, selectedGenre, yearSort, items, dispatch]);
+  }, [items, selectedAuthor, selectedGenre, yearSort, dispatch]);
+
+  useEffect(() => {
+    filterAndSortTracks();
+  }, [filterAndSortTracks]);
 
   const toggleFilter = (filter: FilterType) => {
     if (activeFilter === filter) {
@@ -70,40 +73,19 @@ export function Filter() {
   };
 
   const handleSelectAuthor = (author: string) => {
-    if (selectedAuthor === author) {
-      setSelectedAuthor(null);
-    } else {
-      setSelectedAuthor(author);
-    }
+    setSelectedAuthor(selectedAuthor === author ? null : author);
     setActiveFilter(null);
   };
 
   const handleSelectGenre = (genre: string) => {
-    if (selectedGenre === genre) {
-      setSelectedGenre(null);
-    } else {
-      setSelectedGenre(genre);
-    }
+    setSelectedGenre(selectedGenre === genre ? null : genre);
     setActiveFilter(null);
   };
 
   const handleYearSort = (sort: YearSortType) => {
-    if (yearSort === sort) {
-      setYearSort(null);
-    } else {
-      setYearSort(sort);
-    }
+    setYearSort(yearSort === sort ? null : sort);
     setActiveFilter(null);
   };
-
-  const clearFilters = () => {
-    setSelectedAuthor(null);
-    setSelectedGenre(null);
-    setYearSort(null);
-    dispatch(setPlaylist(items));
-  };
-
-  const hasActiveFilters = selectedAuthor || selectedGenre || yearSort;
 
   const getYearSortLabel = () => {
     if (yearSort === 'newest') return 'сначала новые';
@@ -192,12 +174,6 @@ export function Filter() {
           </div>
         )}
       </div>
-
-      {hasActiveFilters && (
-        <button className={styles.clearAllBtn} onClick={clearFilters}>
-          Сбросить все
-        </button>
-      )}
     </div>
   );
 }

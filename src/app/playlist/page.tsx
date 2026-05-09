@@ -46,10 +46,10 @@ export default function PlaylistPage() {
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/signin');
-    } else {
+    } else if (accessToken) {
       loadFavorites();
     }
-  }, [isAuthenticated, router, loadFavorites]);
+  }, [isAuthenticated, router, loadFavorites, accessToken]);
 
   useEffect(() => {
     if (favoriteTracks.length > 0) {
