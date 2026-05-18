@@ -30,12 +30,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .sidebar__icon svg {
-  width: 24px;
-  height: 24px;
-  fill: #ffffff;
+  width: 40px;
+  height: 40px;
+  display: block;
+  border-radius: 50%;
+}
+
+.sidebar__icon svg circle {
+  stroke: white;
+}
+
+.sidebar__icon svg path {
+  stroke: white;
 }
 
 .sidebar__block {

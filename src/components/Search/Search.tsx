@@ -26,6 +26,11 @@ export function Search() {
     dispatch(setPlaylist(filtered));
   }, [searchQuery, items, dispatch]);
 
+  const handleClear = () => {
+    setSearchQuery('');
+    dispatch(setPlaylist(items));
+  };
+
   return (
     <div className={styles.centerblock__search}>
       <svg className={styles.search__svg}>
@@ -39,6 +44,11 @@ export function Search() {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
+      {searchQuery && (
+        <button className={styles.clearSearch} onClick={handleClear}>
+          ×
+        </button>
+      )}
     </div>
   );
 }

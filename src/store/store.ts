@@ -1,17 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import tracksReducer from './slices/tracksSlice';
 import playerReducer from './slices/playerSlice';
-import filtersReducer from './slices/filtersSlice';
 import authReducer from './slices/authSlice';
 import favoritesReducer from './slices/favoritesSlice';
+import filtersReducer from './slices/filtersSlice';
 
 export const store = configureStore({
   reducer: {
     tracks: tracksReducer,
     player: playerReducer,
-    filters: filtersReducer,
     auth: authReducer,
     favorites: favoritesReducer,
+    filters: filtersReducer,
   },
 });
 

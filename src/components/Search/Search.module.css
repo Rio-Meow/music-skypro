@@ -4,6 +4,7 @@
   margin-bottom: 51px;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .search__svg {
@@ -28,4 +29,21 @@
 .search__text::placeholder {
   color: #ffffff;
   opacity: 0.5;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.clearSearch:hover {
+  opacity: 1;
 }

@@ -12,6 +12,9 @@ const mockTrack = {
   duration_in_seconds: 245,
   track_file: 'test.mp3',
   logo: null,
+  genre: ['Rock'],
+  release_date: '2020-01-01',
+  stared_user: [],
 };
 
 const createMockStore = () => {
@@ -24,7 +27,7 @@ const createMockStore = () => {
   });
 };
 
-describe('PlaylistItem Component', () => {
+describe('PlaylistItem', () => {
   it('должен рендерить название трека', () => {
     const store = createMockStore();
     render(
