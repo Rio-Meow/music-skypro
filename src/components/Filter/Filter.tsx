@@ -4,43 +4,26 @@ import { useState, useEffect } from 'react';
 import cn from 'classnames';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setPlaylist } from '@/store/slices/playerSlice';
+import { extractUniqueAuthors, extractUniqueGenres } from '@/utils/filterUtils';
+import { filterTracksByAuthor, filterTracksByGenre, sortTracksByYear } from '@/utils/trackFilters';
+import { FilterType, YearSortType } from '@/types/filters';
 import styles from './Filter.module.css';
 
 export function Filter() {
   const dispatch = useAppDispatch();
   const { items } = useAppSelector((state) => state.tracks);
   
-  const [activeFilter, setActiveFilter] = useState(null);
-  const [authors, setAuthors] = useState([]);
-  const [genres, setGenres] = useState([]);
-  
-  const [selectedAuthor, setSelectedAuthor] = useState(null);
-  const [selectedGenre, setSelectedGenre] = useState(null);
-  const [yearSort, setYearSort] = useState(null);
+  const [activeFilter, setActiveFilter] = useState<FilterType>(null);
+  const [authors, setAuthors] = useState<string[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [selectedAuthor, setSelectedAuthor] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [yearSort, setYearSort] = useState<YearSortType>(null);
 
   useEffect(() => {
     if (items.length > 0) {
-      const uniqueAuthors = [];
-      items.forEach(track => {
-        if (!uniqueAuthors.includes(track.author)) {
-          uniqueAuthors.push(track.author);
-        }
-      });
-      setAuthors(uniqueAuthors);
-
-      const uniqueGenres = [];
-      items.forEach(track => {
-        if (track.genre) {
-          if (Array.isArray(track.genre)) {
-            track.genre.forEach(g => {
-              if (!uniqueGenres.includes(g)) uniqueGenres.push(g);
-            });
-          } else {
-            if (!uniqueGenres.includes(track.genre)) uniqueGenres.push(track.genre);
-          }
-        }
-      });
-      setGenres(uniqueGenres);
+      setAuthors(extractUniqueAuthors(items));
+      setGenres(extractUniqueGenres(items));
     }
   }, [items]);
 
@@ -48,69 +31,33 @@ export function Filter() {
     if (items.length === 0) return;
     
     let filtered = [...items];
-    
-    if (selectedAuthor) {
-      filtered = filtered.filter(track => track.author === selectedAuthor);
-    }
-    
-    if (selectedGenre) {
-      filtered = filtered.filter(track => {
-        if (Array.isArray(track.genre)) {
-          return track.genre.includes(selectedGenre);
-        }
-        return track.genre === selectedGenre;
-      });
-    }
-    
-    if (yearSort === 'newest') {
-      filtered.sort((a, b) => {
-        const yearA = parseInt(a.release_date?.split('-')[0] || 0);
-        const yearB = parseInt(b.release_date?.split('-')[0] || 0);
-        return yearB - yearA;
-      });
-    } else if (yearSort === 'oldest') {
-      filtered.sort((a, b) => {
-        const yearA = parseInt(a.release_date?.split('-')[0] || 0);
-        const yearB = parseInt(b.release_date?.split('-')[0] || 0);
-        return yearA - yearB;
-      });
-    }
+    filtered = filterTracksByAuthor(filtered, selectedAuthor);
+    filtered = filterTracksByGenre(filtered, selectedGenre);
+    filtered = sortTracksByYear(filtered, yearSort);
     
     dispatch(setPlaylist(filtered));
   }, [items, selectedAuthor, selectedGenre, yearSort, dispatch]);
 
-  const toggleFilter = (filter) => {
-    setActiveFilter(activeFilter === filter ? null : filter);
-  };
-
-  const handleSelectAuthor = (author) => {
+  const handleSelectAuthor = (author: string) => {
     setSelectedAuthor(selectedAuthor === author ? null : author);
     setActiveFilter(null);
   };
 
-  const handleSelectGenre = (genre) => {
+  const handleSelectGenre = (genre: string) => {
     setSelectedGenre(selectedGenre === genre ? null : genre);
     setActiveFilter(null);
   };
 
-  const handleYearSort = (sort) => {
+  const handleYearSort = (sort: YearSortType) => {
     setYearSort(yearSort === sort ? null : sort);
     setActiveFilter(null);
   };
 
-  const clearAuthor = () => {
-    setSelectedAuthor(null);
-  };
+  const clearAuthor = () => setSelectedAuthor(null);
+  const clearGenre = () => setSelectedGenre(null);
+  const clearYearSort = () => setYearSort(null);
 
-  const clearGenre = () => {
-    setSelectedGenre(null);
-  };
-
-  const clearYearSort = () => {
-    setYearSort(null);
-  };
-
-  const getYearSortLabel = () => {
+  const getYearSortLabel = (): string => {
     if (yearSort === 'newest') return 'сначала новые';
     if (yearSort === 'oldest') return 'сначала старые';
     return 'году выпуска';
@@ -123,13 +70,11 @@ export function Filter() {
       <div className={styles.filter__wrapper}>
         <div 
           className={cn(styles.filter__button, { [styles.active]: activeFilter === 'author' || selectedAuthor })}
-          onClick={() => toggleFilter('author')}
+          onClick={() => setActiveFilter(activeFilter === 'author' ? null : 'author')}
         >
           {selectedAuthor || 'исполнителю'}
           {selectedAuthor && (
-            <span className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearAuthor(); }}>
-              ×
-            </span>
+            <span className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearAuthor(); }}>×</span>
           )}
         </div>
         {activeFilter === 'author' && (
@@ -152,13 +97,11 @@ export function Filter() {
       <div className={styles.filter__wrapper}>
         <div 
           className={cn(styles.filter__button, { [styles.active]: activeFilter === 'year' || yearSort })}
-          onClick={() => toggleFilter('year')}
+          onClick={() => setActiveFilter(activeFilter === 'year' ? null : 'year')}
         >
           {getYearSortLabel()}
           {yearSort && (
-            <span className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearYearSort(); }}>
-              ×
-            </span>
+            <span className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearYearSort(); }}>×</span>
           )}
         </div>
         {activeFilter === 'year' && (
@@ -184,13 +127,11 @@ export function Filter() {
       <div className={styles.filter__wrapper}>
         <div 
           className={cn(styles.filter__button, { [styles.active]: activeFilter === 'genre' || selectedGenre })}
-          onClick={() => toggleFilter('genre')}
+          onClick={() => setActiveFilter(activeFilter === 'genre' ? null : 'genre')}
         >
           {selectedGenre || 'жанру'}
           {selectedGenre && (
-            <span className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearGenre(); }}>
-              ×
-            </span>
+            <span className={styles.clearBtn} onClick={(e) => { e.stopPropagation(); clearGenre(); }}>×</span>
           )}
         </div>
         {activeFilter === 'genre' && (
