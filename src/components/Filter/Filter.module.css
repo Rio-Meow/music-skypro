@@ -123,3 +123,35 @@
   border-color: #ff6666;
   color: #ff6666;
 }
+.searchWrapper {
+  position: relative;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #4e4e4e;
+  padding: 13px 40px 13px 10px;
+  font-size: 16px;
+  line-height: 24px;
+  color: #ffffff;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.clearSearch {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 20px;
+  cursor: pointer;
+}
