@@ -1,3 +1,9 @@
+export interface StaredUser {
+  id: number;
+  email?: string;
+  username?: string;
+}
+
 export interface Track {
   _id: number;
   name: string;
@@ -8,5 +14,11 @@ export interface Track {
   album: string;
   logo: string | null;
   track_file: string;
-  stared_user: any[];
+  stared_user: StaredUser[];
+}
+
+export interface User {
+  email: string;
+  username: string;
+  _id: number;
 }

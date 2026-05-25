@@ -54,7 +54,7 @@ const PlaylistItemComponent = ({ track }: PlaylistItemProps) => {
 
   const handleLikeClick = useCallback(async () => {
     if (!isAuthenticated || !accessToken) {
-      alert('Необходимо авторизоваться');
+      alert('Необходимо авторизоваться, чтобы добавить трек в избранное');
       return;
     }
     
@@ -106,6 +106,7 @@ const PlaylistItemComponent = ({ track }: PlaylistItemProps) => {
             className={cn(styles.likeBtn, { [styles.liked]: isLiked })}
             onClick={handleLikeClick}
             aria-label={isLiked ? 'Удалить из избранного' : 'Добавить в избранное'}
+            disabled={!isAuthenticated}
           >
             <svg className={styles.track__timeSvg}>
               <use xlinkHref="/img/icon/sprite.svg#icon-like"></use>

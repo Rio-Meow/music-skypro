@@ -1,16 +1,18 @@
 .sidebar {
   max-width: 418px;
-  padding: 20px 90px 20px 78px;
+  width: 418px;
+  padding: 20px 60px;
   height: 100%;
   display: flex;
   flex-direction: column;
+  margin: 0 auto;
 }
 
 .sidebar__personal {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
   flex-shrink: 0;
 }
 
@@ -30,28 +32,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .sidebar__icon svg {
-  width: 40px;
-  height: 40px;
-  display: block;
-  border-radius: 50%;
-}
-
-.sidebar__icon svg circle {
-  stroke: white;
-}
-
-.sidebar__icon svg path {
-  stroke: white;
+  width: 24px;
+  height: 24px;
+  fill: #ffffff;
 }
 
 .sidebar__block {
   flex: 1;
   overflow-y: auto;
   padding-bottom: 20px;
+  display: flex;
+  justify-content: center;
 }
 
 .sidebar__block::-webkit-scrollbar {
@@ -67,13 +61,17 @@
 
 .sidebar__item {
   width: 250px;
-  height: 150px;
+  text-align: center;
 }
 
 .sidebar__link {
   width: 100%;
-  height: 100%;
   display: block;
+  transition: transform 0.2s;
+}
+
+.sidebar__link:hover {
+  transform: scale(1.02);
 }
 
 .sidebar__img {

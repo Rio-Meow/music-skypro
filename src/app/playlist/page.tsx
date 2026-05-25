@@ -7,7 +7,7 @@ import Link from 'next/link';
 import cn from 'classnames';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPlaylist } from '@/store/slices/playerSlice';
-import { logout } from '@/store/slices/authSlice';
+import { logout, refreshAccessToken } from '@/store/slices/authSlice';
 import { PlaylistItem } from '@/components/Playlist/PlaylistItem';
 import { Search } from '@/components/Search/Search';
 import { Filter } from '@/components/Filter/Filter';
@@ -19,35 +19,40 @@ export default function PlaylistPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { isAuthenticated, accessToken, user } = useAppSelector((state) => state.auth);
-  const { items: favoriteTracks, status } = useAppSelector((state) => state.favorites);
+  const { items: favoriteTracks, status, error } = useAppSelector((state) => state.favorites);
   
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    router.push('/signin');
-  };
-
-  const loadFavorites = useCallback(async () => {
-    if (!isAuthenticated || !accessToken) return;
-    
+  const loadFavorites = useCallback(async (token: string) => {
     try {
       setLoading(true);
-      await dispatch(fetchFavorites(accessToken)).unwrap();
-      setError(null);
+      await dispatch(fetchFavorites(token)).unwrap();
+      setPageError(null);
     } catch (err) {
-      setError('Не удалось загрузить избранные треки');
+      if (err === 'Token expired') {
+        // Пробуем обновить токен
+        try {
+          const newToken = await dispatch(refreshAccessToken()).unwrap();
+          await dispatch(fetchFavorites(newToken)).unwrap();
+          setPageError(null);
+        } catch (refreshErr) {
+          dispatch(logout());
+          router.push('/signin');
+        }
+      } else {
+        setPageError('Не удалось загрузить избранные треки');
+      }
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, accessToken, dispatch]);
+  }, [dispatch, router]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/signin');
     } else if (accessToken) {
-      loadFavorites();
+      loadFavorites(accessToken);
     }
   }, [isAuthenticated, router, loadFavorites, accessToken]);
 
@@ -61,7 +66,7 @@ export default function PlaylistPage() {
     return null;
   }
 
-  if (loading || status === 'loading') {
+  if (loading) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loading}>Загрузка избранного...</div>
@@ -69,11 +74,11 @@ export default function PlaylistPage() {
     );
   }
 
-  if (error) {
+  if (pageError) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.error}>{error}</div>
-        <button onClick={loadFavorites} className={styles.retryBtn}>
+        <div className={styles.error}>{pageError}</div>
+        <button onClick={() => accessToken && loadFavorites(accessToken)} className={styles.retryBtn}>
           Попробовать снова
         </button>
       </div>
@@ -146,7 +151,7 @@ export default function PlaylistPage() {
             <div className={styles.sidebar__personal}>
               <p className={styles.sidebar__personalName}>{user?.username || user?.email || 'Гость'}</p>
               {isAuthenticated && (
-                <div className={styles.sidebar__icon} onClick={handleLogout}>
+                <div className={styles.sidebar__icon} onClick={() => dispatch(logout())}>
                   <svg width="24" height="24" viewBox="0 0 24 24">
                     <use xlinkHref="/img/icon/sprite.svg#logout"></use>
                   </svg>
