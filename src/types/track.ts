@@ -22,3 +22,8 @@ export interface User {
   username: string;
   _id: number;
 }
+
+export interface Tokens {
+  access: string;
+  refresh: string;
+}

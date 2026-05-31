@@ -14,6 +14,7 @@ import { PlaylistItem } from '@/components/Playlist/PlaylistItem';
 import { Search } from '@/components/Search/Search';
 import { Filter } from '@/components/Filter/Filter';
 import { Bar } from '@/components/Bar/Bar';
+import { Track } from '@/types/track';
 import { getSelectionById } from '@/api/mockSelections';
 import styles from './page.module.css';
 
@@ -26,7 +27,7 @@ export default function SelectionPage() {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [selectionName, setSelectionName] = useState<string>('');
-  const [selectionTracks, setSelectionTracks] = useState<any[]>([]);
+  const [selectionTracks, setSelectionTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

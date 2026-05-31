@@ -1,42 +1,25 @@
-const API_BASE = 'https://webdev-music-003b5b991590.herokuapp.com';
+import { Track } from '@/types/track';
 
-export interface Track {
-  _id: number;
-  name: string;
-  author: string;
-  release_date: string;
-  genre: string[];
-  duration_in_seconds: number;
-  album: string;
-  logo: string | null;
-  track_file: string;
-  stared_user: any[];
-}
+const API_BASE = 'https://webdev-music-003b5b991590.herokuapp.com';
 
 export const getAllTracks = async (): Promise<Track[]> => {
   const response = await fetch(`${API_BASE}/catalog/track/all/`);
-  
   if (!response.ok) {
     throw new Error(`Ошибка загрузки треков: ${response.status}`);
   }
-  
   const data = await response.json();
-  return data.data;
+  return data.data as Track[];
 };
 
 export const getFavoriteTracks = async (accessToken: string): Promise<Track[]> => {
   const response = await fetch(`${API_BASE}/catalog/track/favorite/all/`, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-    },
+    headers: { 'Authorization': `Bearer ${accessToken}` },
   });
-  
   if (!response.ok) {
     throw new Error('Ошибка загрузки избранных треков');
   }
-  
   const data = await response.json();
-  return data.data;
+  return data.data as Track[];
 };
 
 export const addToFavorite = async (id: number, accessToken: string): Promise<void> => {
@@ -47,7 +30,6 @@ export const addToFavorite = async (id: number, accessToken: string): Promise<vo
       'Content-Type': 'application/json',
     },
   });
-  
   if (!response.ok) {
     throw new Error('Ошибка добавления в избранное');
   }
@@ -56,11 +38,8 @@ export const addToFavorite = async (id: number, accessToken: string): Promise<vo
 export const removeFromFavorite = async (id: number, accessToken: string): Promise<void> => {
   const response = await fetch(`${API_BASE}/catalog/track/${id}/favorite/`, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-    },
+    headers: { 'Authorization': `Bearer ${accessToken}` },
   });
-  
   if (!response.ok) {
     throw new Error('Ошибка удаления из избранного');
   }
