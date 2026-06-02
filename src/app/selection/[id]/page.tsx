@@ -7,9 +7,9 @@ import Link from 'next/link';
 import cn from 'classnames';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPlaylist } from '@/store/slices/playerSlice';
-import { logout } from '@/store/slices/authSlice';
 import { fetchTracks } from '@/store/slices/tracksSlice';
 import { Nav } from '@/components/Nav/Nav';
+import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { PlaylistItem } from '@/components/Playlist/PlaylistItem';
 import { Search } from '@/components/Search/Search';
 import { Filter } from '@/components/Filter/Filter';
@@ -24,20 +24,11 @@ export default function SelectionPage() {
   const id = params.id as string;
   const dispatch = useAppDispatch();
   const { items, status } = useAppSelector((state) => state.tracks);
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [selectionName, setSelectionName] = useState<string>('');
   const [selectionTracks, setSelectionTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const handleLogout = () => {
-    dispatch(logout());
-    router.push('/signin');
-  };
-
-  const userName = user?.username || user?.email || 'Гость';
-  const displayName = isAuthenticated ? userName : 'Гость';
 
   useEffect(() => {
     if (status === 'idle') {
@@ -113,58 +104,7 @@ export default function SelectionPage() {
             </div>
           </div>
           
-          <div className={styles.sidebar}>
-            <div className={styles.sidebar__personal}>
-              <p className={styles.sidebar__personalName}>{displayName}</p>
-              {isAuthenticated && (
-                <div className={styles.sidebar__icon} onClick={handleLogout}>
-                  <svg width="24" height="24" viewBox="0 0 24 24">
-                    <use xlinkHref="/img/icon/sprite.svg#logout"></use>
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div className={styles.sidebar__block}>
-              <div className={styles.sidebar__list}>
-                <div className={styles.sidebar__item}>
-                  <Link href="/selection/1" className={styles.sidebar__link}>
-                    <Image
-                      className={styles.sidebar__img}
-                      src="/img/playlist01.png"
-                      alt="Плейлист дня"
-                      width={250}
-                      height={150}
-                      priority
-                    />
-                  </Link>
-                </div>
-                <div className={styles.sidebar__item}>
-                  <Link href="/selection/2" className={styles.sidebar__link}>
-                    <Image
-                      className={styles.sidebar__img}
-                      src="/img/playlist02.png"
-                      alt="100 танцевальных хитов"
-                      width={250}
-                      height={150}
-                      priority
-                    />
-                  </Link>
-                </div>
-                <div className={styles.sidebar__item}>
-                  <Link href="/selection/3" className={styles.sidebar__link}>
-                    <Image
-                      className={styles.sidebar__img}
-                      src="/img/playlist03.png"
-                      alt="Инди-заряд"
-                      width={250}
-                      height={150}
-                      priority
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Sidebar />
         </main>
         <Bar />
       </div>

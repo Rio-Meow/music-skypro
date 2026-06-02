@@ -8,6 +8,8 @@ import cn from 'classnames';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPlaylist } from '@/store/slices/playerSlice';
 import { logout, refreshAccessToken } from '@/store/slices/authSlice';
+import { Nav } from '@/components/Nav/Nav';
+import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { PlaylistItem } from '@/components/Playlist/PlaylistItem';
 import { Search } from '@/components/Search/Search';
 import { Filter } from '@/components/Filter/Filter';
@@ -31,7 +33,6 @@ export default function PlaylistPage() {
       setPageError(null);
     } catch (err) {
       if (err === 'Token expired') {
-        // Пробуем обновить токен
         try {
           const newToken = await dispatch(refreshAccessToken()).unwrap();
           await dispatch(fetchFavorites(newToken)).unwrap();
@@ -89,33 +90,7 @@ export default function PlaylistPage() {
     <div className={styles.wrapper}>
       <div className={styles.container}>
         <main className={styles.main}>
-          <nav className={styles.main__nav}>
-            <div className={styles.nav__logo}>
-              <Image
-                width={113}
-                height={17}
-                className={styles.logo__image}
-                src="/img/logo.png"
-                alt="logo"
-                priority
-              />
-            </div>
-            <div className={styles.nav__burger}>
-              <span className={styles.burger__line}></span>
-              <span className={styles.burger__line}></span>
-              <span className={styles.burger__line}></span>
-            </div>
-            <div className={styles.nav__menu}>
-              <ul className={styles.menu__list}>
-                <li className={styles.menu__item}>
-                  <Link href="/" className={styles.menu__link}>Главное</Link>
-                </li>
-                <li className={styles.menu__item}>
-                  <Link href="/playlist" className={styles.menu__link}>Мой плейлист</Link>
-                </li>
-              </ul>
-            </div>
-          </nav>
+          <Nav />
           
           <div className={styles.centerblock}>
             <Search />
@@ -147,58 +122,7 @@ export default function PlaylistPage() {
             </div>
           </div>
           
-          <div className={styles.sidebar}>
-            <div className={styles.sidebar__personal}>
-              <p className={styles.sidebar__personalName}>{user?.username || user?.email || 'Гость'}</p>
-              {isAuthenticated && (
-                <div className={styles.sidebar__icon} onClick={() => dispatch(logout())}>
-                  <svg width="24" height="24" viewBox="0 0 24 24">
-                    <use xlinkHref="/img/icon/sprite.svg#logout"></use>
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div className={styles.sidebar__block}>
-              <div className={styles.sidebar__list}>
-                <div className={styles.sidebar__item}>
-                  <Link href="/selection/1" className={styles.sidebar__link}>
-                    <Image
-                      className={styles.sidebar__img}
-                      src="/img/playlist01.png"
-                      alt="playlist"
-                      width={250}
-                      height={150}
-                      priority
-                    />
-                  </Link>
-                </div>
-                <div className={styles.sidebar__item}>
-                  <Link href="/selection/2" className={styles.sidebar__link}>
-                    <Image
-                      className={styles.sidebar__img}
-                      src="/img/playlist02.png"
-                      alt="playlist"
-                      width={250}
-                      height={150}
-                      priority
-                    />
-                  </Link>
-                </div>
-                <div className={styles.sidebar__item}>
-                  <Link href="/selection/3" className={styles.sidebar__link}>
-                    <Image
-                      className={styles.sidebar__img}
-                      src="/img/playlist03.png"
-                      alt="playlist"
-                      width={250}
-                      height={150}
-                      priority
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Sidebar />
         </main>
         <Bar />
       </div>
