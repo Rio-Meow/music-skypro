@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { getFavoriteTracks, addToFavorite, removeFromFavorite, Track } from '@/api/tracks';
+import { Track } from '@/types/track';
 
 interface FavoritesState {
   items: Track[];
@@ -15,24 +15,84 @@ const initialState: FavoritesState = {
 
 export const fetchFavorites = createAsyncThunk(
   'favorites/fetch',
-  async (accessToken: string) => {
-    return await getFavoriteTracks(accessToken);
+  async (accessToken: string, { rejectWithValue }) => {
+    if (!accessToken) {
+      return rejectWithValue('No access token');
+    }
+    
+    try {
+      const response = await fetch('https://webdev-music-003b5b991590.herokuapp.com/catalog/track/favorite/all/', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      
+      if (response.status === 401) {
+        return rejectWithValue('Token expired');
+      }
+      
+      if (!response.ok) {
+        return rejectWithValue('Failed to fetch favorites');
+      }
+      
+      const data = await response.json();
+      return data.data as Track[];
+    } catch {
+      return rejectWithValue('Network error');
+    }
   }
 );
 
 export const addToFavorites = createAsyncThunk(
   'favorites/add',
-  async ({ trackId, accessToken }: { trackId: number; accessToken: string }) => {
-    await addToFavorite(trackId, accessToken);
-    return trackId;
+  async ({ trackId, accessToken }: { trackId: number; accessToken: string }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`https://webdev-music-003b5b991590.herokuapp.com/catalog/track/${trackId}/favorite/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.status === 401) {
+        return rejectWithValue('Token expired');
+      }
+      
+      if (!response.ok) {
+        return rejectWithValue('Failed to add to favorites');
+      }
+      
+      return trackId;
+    } catch {
+      return rejectWithValue('Network error');
+    }
   }
 );
 
 export const removeFromFavorites = createAsyncThunk(
   'favorites/remove',
-  async ({ trackId, accessToken }: { trackId: number; accessToken: string }) => {
-    await removeFromFavorite(trackId, accessToken);
-    return trackId;
+  async ({ trackId, accessToken }: { trackId: number; accessToken: string }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`https://webdev-music-003b5b991590.herokuapp.com/catalog/track/${trackId}/favorite/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+      
+      if (response.status === 401) {
+        return rejectWithValue('Token expired');
+      }
+      
+      if (!response.ok) {
+        return rejectWithValue('Failed to remove from favorites');
+      }
+      
+      return trackId;
+    } catch {
+      return rejectWithValue('Network error');
+    }
   }
 );
 
@@ -44,20 +104,12 @@ const favoritesSlice = createSlice({
       state.items = [];
       state.status = 'idle';
     },
-    toggleFavoriteLocal: (state, action: PayloadAction<Track>) => {
-      const track = action.payload;
-      const exists = state.items.some(t => t._id === track._id);
-      if (exists) {
-        state.items = state.items.filter(t => t._id !== track._id);
-      } else {
-        state.items.push(track);
-      }
-    },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchFavorites.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchFavorites.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -65,7 +117,7 @@ const favoritesSlice = createSlice({
       })
       .addCase(fetchFavorites.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message || 'Failed to fetch favorites';
+        state.error = action.payload as string;
       })
       .addCase(addToFavorites.fulfilled, (state, action) => {
       })
@@ -75,5 +127,5 @@ const favoritesSlice = createSlice({
   },
 });
 
-export const { clearFavorites, toggleFavoriteLocal } = favoritesSlice.actions;
+export const { clearFavorites } = favoritesSlice.actions;
 export default favoritesSlice.reducer;

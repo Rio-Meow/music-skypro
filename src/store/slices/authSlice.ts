@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { User } from '@/types/track';
 
 interface AuthState {
-  user: { email: string; username: string; _id: number } | null;
+  user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -42,8 +43,8 @@ export const refreshAccessToken = createAsyncThunk(
       const data = await response.json();
       localStorage.setItem('accessToken', data.access);
       return data.access;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to refresh token');
     }
   }
 );
@@ -77,12 +78,9 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem('refreshToken', tokens.refresh);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      return { 
-        tokens, 
-        user: userData
-      };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return { tokens, user: userData as User };
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка авторизации');
     }
   }
 );
@@ -115,9 +113,9 @@ export const registerUser = createAsyncThunk(
       localStorage.setItem('refreshToken', tokens.refresh);
       localStorage.setItem('user', JSON.stringify(signupData.result));
       
-      return { tokens, user: signupData.result };
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+      return { tokens, user: signupData.result as User };
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Ошибка регистрации');
     }
   }
 );
@@ -130,13 +128,18 @@ export const restoreSession = createAsyncThunk(
     const userStr = localStorage.getItem('user');
     
     if (accessToken && refreshToken && userStr) {
-      return {
-        accessToken,
-        refreshToken,
-        user: JSON.parse(userStr),
-      };
+      try {
+        const user = JSON.parse(userStr);
+        return {
+          accessToken,
+          refreshToken,
+          user,
+        };
+      } catch {
+        return null;
+      }
     }
-    throw new Error('No session');
+    return null;
   }
 );
 
@@ -190,10 +193,12 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(restoreSession.fulfilled, (state, action) => {
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
+        if (action.payload) {
+          state.accessToken = action.payload.accessToken;
+          state.refreshToken = action.payload.refreshToken;
+          state.user = action.payload.user;
+          state.isAuthenticated = true;
+        }
       })
       .addCase(refreshAccessToken.fulfilled, (state, action) => {
         state.accessToken = action.payload;

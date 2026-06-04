@@ -1,4 +1,4 @@
-import { Track } from './tracks';
+import { Track } from '@/types/track';
 
 export interface Selection {
   _id: number;
@@ -7,10 +7,14 @@ export interface Selection {
 }
 
 export const getSelectionById = (id: number, tracks: Track[]): Selection => {
+  if (!tracks.length) {
+    throw new Error('Треки не загружены');
+  }
+  
   let items: Track[] = [];
   let name = '';
   
-  switch (id) {
+  switch (Number(id)) {
     case 1:
       name = 'Плейлист дня';
       items = tracks.slice(0, 8);
@@ -28,7 +32,7 @@ export const getSelectionById = (id: number, tracks: Track[]): Selection => {
   }
   
   return {
-    _id: id,
+    _id: Number(id),
     name,
     items,
   };

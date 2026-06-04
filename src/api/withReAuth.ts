@@ -1,6 +1,11 @@
 import { store } from '@/store/store';
 import { refreshAccessToken, logout } from '@/store/slices/authSlice';
 
+interface ApiError {
+  message?: string;
+  status?: number;
+}
+
 export async function withReAuth<T>(
   apiCall: (token: string) => Promise<T>,
   retryCount: number = 0
@@ -14,8 +19,9 @@ export async function withReAuth<T>(
   
   try {
     return await apiCall(token);
-  } catch (error: any) {
-    if (error.message?.includes('401') || error.status === 401) {
+  } catch (error: unknown) {
+    const err = error as ApiError;
+    if (err.message?.includes('401') || err.status === 401) {
       if (retryCount >= 1) {
         store.dispatch(logout());
         throw new Error('Session expired. Please login again.');

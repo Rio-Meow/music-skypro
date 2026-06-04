@@ -23,6 +23,7 @@ export function Bar() {
     isPlaying, 
     isRepeat, 
     isShuffle,
+    playlist
   } = useAppSelector((state) => state.player);
   const { accessToken, isAuthenticated } = useAppSelector((state) => state.auth);
   const { items: favorites } = useAppSelector((state) => state.favorites);
@@ -39,6 +40,10 @@ export function Bar() {
   const [isLikeLoading, setIsLikeLoading] = useState(false);
   
   const isLiked = currentTrack ? favorites.some(fav => fav._id === currentTrack._id) : false;
+  
+  const currentIndex = currentTrack ? playlist.findIndex(t => t._id === currentTrack._id) : -1;
+  const isFirstTrack = currentIndex === 0 && !isShuffle;
+  const isLastTrack = currentIndex === playlist.length - 1 && !isShuffle;
 
   useEffect(() => {
     isRepeatRef.current = isRepeat;
@@ -68,7 +73,7 @@ export function Bar() {
       
       const handleCanPlay = () => {
         if (audioRef.current && isPlayingRef.current && !isLoadingRef.current) {
-          audioRef.current.play().catch((err) => console.error('Play error:', err));
+          audioRef.current.play().catch(() => {});
         }
       };
       
@@ -78,13 +83,12 @@ export function Bar() {
             audioRef.current.currentTime = 0;
             audioRef.current.play().catch(() => {});
           }
-        } else {
+        } else if (!isLastTrack) {
           dispatch(nextTrack());
         }
       };
       
-      const handleError = (e: any) => {
-        console.error('Audio error:', e);
+      const handleError = () => {
         isLoadingRef.current = false;
       };
       
@@ -106,13 +110,12 @@ export function Bar() {
         }
       };
     }
-  }, [dispatch]);
+  }, [dispatch, isLastTrack]);
   
   useEffect(() => {
     if (audioRef.current && currentTrack) {
       isLoadingRef.current = true;
       const currentVolume = audioRef.current.volume;
-      
       audioRef.current.src = currentTrack.track_file;
       audioRef.current.load();
       audioRef.current.volume = currentVolume;
@@ -122,7 +125,7 @@ export function Bar() {
   useEffect(() => {
     if (audioRef.current && currentTrack && !isLoadingRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch((err) => console.error('Play error:', err));
+        audioRef.current.play().catch(() => {});
       } else {
         audioRef.current.pause();
       }
@@ -136,7 +139,7 @@ export function Bar() {
   }, [volume]);
 
   const handleLikeClick = useCallback(async () => {
-    if (!isAuthenticated || !currentTrack) {
+    if (!isAuthenticated || !currentTrack || !accessToken) {
       alert('Необходимо авторизоваться');
       return;
     }
@@ -144,13 +147,12 @@ export function Bar() {
     setIsLikeLoading(true);
     try {
       if (isLiked) {
-        await dispatch(removeFromFavorites({ trackId: currentTrack._id, accessToken: accessToken! })).unwrap();
+        await dispatch(removeFromFavorites({ trackId: currentTrack._id, accessToken })).unwrap();
       } else {
-        await dispatch(addToFavorites({ trackId: currentTrack._id, accessToken: accessToken! })).unwrap();
-        await dispatch(fetchFavorites(accessToken!));
+        await dispatch(addToFavorites({ trackId: currentTrack._id, accessToken })).unwrap();
+        await dispatch(fetchFavorites(accessToken));
       }
-    } catch (error: any) {
-      console.error('Error toggling like:', error);
+    } catch {
       alert('Ошибка при изменении статуса лайка');
     } finally {
       setIsLikeLoading(false);
@@ -172,6 +174,18 @@ export function Bar() {
       audioRef.current.currentTime = time;
       setCurrentTimeLocal(time);
       dispatch(setCurrentTime(time));
+    }
+  };
+
+  const handlePrevClick = () => {
+    if (!isFirstTrack) {
+      dispatch(prevTrack());
+    }
+  };
+
+  const handleNextClick = () => {
+    if (!isLastTrack) {
+      dispatch(nextTrack());
     }
   };
 
@@ -222,7 +236,10 @@ export function Bar() {
         <div className={styles.bar__playerBlock}>
           <div className={styles.bar__player}>
             <div className={styles.player__controls}>
-              <div className={styles.player__btnPrev} onClick={() => dispatch(prevTrack())}>
+              <div 
+                className={cn(styles.player__btnPrev, { [styles.disabled]: isFirstTrack })} 
+                onClick={handlePrevClick}
+              >
                 <svg className={styles.player__btnPrevSvg}>
                   <use xlinkHref="/img/icon/sprite.svg#icon-prev"></use>
                 </svg>
@@ -232,7 +249,10 @@ export function Bar() {
                   <use xlinkHref={`/img/icon/sprite.svg#icon-${isPlaying ? 'pause' : 'play'}`}></use>
                 </svg>
               </div>
-              <div className={styles.player__btnNext} onClick={() => dispatch(nextTrack())}>
+              <div 
+                className={cn(styles.player__btnNext, { [styles.disabled]: isLastTrack })} 
+                onClick={handleNextClick}
+              >
                 <svg className={styles.player__btnNextSvg}>
                   <use xlinkHref="/img/icon/sprite.svg#icon-next"></use>
                 </svg>

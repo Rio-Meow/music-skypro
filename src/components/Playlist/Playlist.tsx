@@ -39,7 +39,9 @@ export function Playlist() {
   if (status === 'failed') {
     return (
       <div className={styles.error}>
-        <p>Ошибка загрузки треков: {error}</p>
+        <div className={styles.errorIcon}>⚠️</div>
+        <p className={styles.errorTitle}>Ошибка загрузки</p>
+        <p className={styles.errorMessage}>{error || 'Не удалось загрузить треки. Попробуйте позже.'}</p>
         <button onClick={() => dispatch(fetchTracks())} className={styles.retryBtn}>
           Попробовать снова
         </button>
@@ -52,11 +54,7 @@ export function Playlist() {
   if (items.length > 0 && tracksToShow.length === 0) {
     return (
       <div className={styles.empty}>
-        <svg className={styles.emptyIcon} width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
+        <div className={styles.emptyIcon}>🔍</div>
         <p className={styles.emptyTitle}>Ничего не найдено</p>
         <p className={styles.emptyHint}>Попробуйте изменить параметры поиска или фильтрации</p>
       </div>
